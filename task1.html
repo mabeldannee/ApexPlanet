@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Explorer Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: #e0f7fa;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* Animated background */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration, 5s) infinite alternate;
+            z-index: -1;
+        }
+        
+        /* Header styling */
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+            position: relative;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.3);
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            text-shadow: 0 0 20px #00b0ff;
+            margin-bottom: 0.5rem;
+            letter-spacing: 4px;
+            color: #4fc3f7;
+            animation: pulsate 3s infinite alternate;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #81d4fa;
+        }
+        
+        /* Dashboard layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto 300px 300px;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-card {
+            background: rgba(10, 25, 47, 0.85);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.2);
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.3);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: #4fc3f7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Solar System Display - Updated for hyper-realistic view */
+        #solar-system {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #system-display {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: center;
+        }
+        
+        .sun {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ffeb3b, #ff9800, #ff5722);
+            border-radius: 50%;
+            box-shadow: 0 0 80px #ff5722, 0 0 120px #ff9800, 0 0 160px #ffeb3b;
+            z-index: 1;
+            animation: solar-flare 8s infinite alternate;
+        }
+        
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 2;
+            transform-origin: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .planet:hover {
+            transform: scale(1.3);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            z-index: 10;
+        }
+        
+        .orbit {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform-origin: center;
+        }
+        
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .planet-detail {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Mission Control */
+        #mission-control {
+            grid-column: 3;
+            grid-row: 1;
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            padding: 12px;
+            background: rgba(30, 80, 150, 0.6);
+            color: #e1f5fe;
+            border: 1px solid #29b6f6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: rgba(30, 120, 200, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(41, 182, 246, 0.4);
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2c3e50;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #bdc3c7;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #3498db;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+            background-color: #ecf0f1;
+        }
+        
+        /* Data Visualization */
+        #data-viz {
+            grid-column: 1 / 3;
+            grid-row: 2;
+            height: 300px;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            position: relative;
+        }
+        
+        /* Communication Panel */
+        #communication {
+            grid-column: 3;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(30, 100, 180, 0.3);
+        }
+        
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 30, 60, 0.7);
+            border: 1px solid #29b6f6;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .message-input button {
+            padding: 12px 20px;
+            background: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        /* Spaceship Control */
+        #spaceship {
+            grid-column: 1;
+            grid-row: 3;
+        }
+        
+        .spaceship-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spaceship {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #3a6186, #89253e);
+            clip-path: polygon(50% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+            cursor: pointer;
+            transition: all 0.5s;
+            position: relative;
+        }
+        
+        .spaceship:hover {
+            transform: scale(1.1) rotate(10deg);
+            background: linear-gradient(45deg, #4a7196, #9a355e);
+        }
+        
+        /* Exploration Log */
+        #log {
+            grid-column: 2 / 4;
+            grid-row: 3;
+        }
+        
+        .log-entries {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 8px;
+        }
+        
+        .log-entry {
+            margin: 8px 0;
+            padding: 8px;
+            border-left: 3px solid #4fc3f7;
+            background: rgba(30, 100, 180, 0.2);
+            border-radius: 0 5px 5px 0;
+        }
+        
+        /* Animations */
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulsate {
+            0% { text-shadow: 0 0 10px #00b0ff; }
+            100% { text-shadow: 0 0 30px #00b0ff, 0 0 60px #0086c3; }
+        }
+        
+        @keyframes orbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes solar-flare {
+            0% { box-shadow: 0 0 80px #ff5722, 0 0 120px #ff9800, 0 0 160px #ffeb3b; }
+            50% { box-shadow: 0 0 100px #ff5722, 0 0 140px #ff9800, 0 0 180px #ffeb3b; }
+            100% { box-shadow: 0 0 80px #ff5722, 0 0 120px #ff9800, 0 0 160px #ffeb3b; }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto auto auto auto;
+            }
+            
+            #solar-system {
+                grid-column: 1 / 3;
+            }
+            
+            #mission-control {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            
+            #data-viz {
+                grid-column: 2;
+                grid-row: 2;
+            }
+            
+            #communication {
+                grid-column: 1;
+                grid-row: 3;
+            }
+            
+            #spaceship {
+                grid-column: 2;
+                grid-row: 3;
+            }
+            
+            #log {
+                grid-column: 1 / 3;
+                grid-row: 4;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            
+            .dashboard-card {
+                grid-column: 1 !important;
+                grid-row: auto !important;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-rocket"></i> COSMIC EXPLORER DASHBOARD</h1>
+        <p class="subtitle">Mission Control for Interstellar Exploration - Monitoring Deep Space Operations</p>
+    </header>
+    
+    <div class="dashboard">
+        <!-- Solar System Display -->
+        <div class="dashboard-card" id="solar-system">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-globe-americas"></i> Solar System Navigator</h2>
+                <div class="controls">
+                    <button id="zoom-in" class="control-btn"><i class="fas fa-search-plus"></i></button>
+                    <button id="zoom-out" class="control-btn"><i class="fas fa-search-minus"></i></button>
+                </div>
+            </div>
+            <div id="system-display">
+                <!-- Planets will be added by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Mission Control -->
+        <div class="dashboard-card" id="mission-control">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-satellite"></i> Mission Control</h2>
+                <span id="status-indicator" class="status online"><i class="fas fa-circle"></i> ONLINE</span>
+            </div>
+            <div class="control-panel">
+                <button class="control-btn" id="launch-btn"><i class="fas fa-play"></i> Initiate Launch</button>
+                <button class="control-btn" id="scan-btn"><i class="fas fa-satellite-dish"></i> Deep Scan</button>
+                <button class="control-btn" id="warp-btn"><i class="fas fa-star"></i> Engage Warp Drive</button>
+                <button class="control-btn" id="probe-btn"><i class="fas fa-space-shuttle"></i> Deploy Probe</button>
+            </div>
+            
+            <div class="toggle-container">
+                <label>Life Support Systems</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="life-support" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-container">
+                <label>Deflector Shields</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="shields" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-container">
+                <label>Artificial Gravity</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="gravity" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Data Visualization -->
+        <div class="dashboard-card" id="data-viz">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-line"></i> Galactic Sensor Data</h2>
+                <div class="controls">
+                    <button id="refresh-data" class="control-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="sensor-chart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Communication Panel -->
+        <div class="dashboard-card" id="communication">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-comments"></i> Deep Space Communication</h2>
+                <span id="signal-strength">📶 Excellent</span>
+            </div>
+            <div class="message-container" id="message-container">
+                <div class="message"><strong>Mission Control:</strong> Cosmic Explorer, you are cleared for orbital insertion.</div>
+                <div class="message"><strong>Explorer:</strong> Roger that, initiating maneuver sequence.</div>
+                <div class="message"><strong>Dr. Aris Thorne:</strong> Remember to collect samples from the northern ridge.</div>
+            </div>
+            <div class="message-input">
+                <input type="text" id="message-input" placeholder="Type your message...">
+                <button id="send-btn">Send <i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        
+        <!-- Spaceship Control -->
+        <div class="dashboard-card" id="spaceship">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-space-shuttle"></i> Spaceship Control</h2>
+                <span id="spaceship-status">Systems Nominal</span>
+            </div>
+            <div class="spaceship-container">
+                <div class="spaceship" id="spaceship-model"></div>
+            </div>
+            <div class="controls" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                <button class="control-btn" id="rotate-left"><i class="fas fa-undo"></i> Rotate Left</button>
+                <button class="control-btn" id="rotate-right"><i class="fas fa-redo"></i> Rotate Right</button>
+            </div>
+        </div>
+        
+        <!-- Exploration Log -->
+        <div class="dashboard-card" id="log">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-clipboard-list"></i> Mission Log</h2>
+                <span id="log-date">Stardate 57854.3</span>
+            </div>
+            <div class="log-entries" id="log-entries">
+                <div class="log-entry"><strong>[57854.1]</strong> Entered orbit around Kepler-186f</div>
+                <div class="log-entry"><strong>[57854.2]</strong> Detected unusual energy signatures from the surface</div>
+                <div class="log-entry"><strong>[57854.3]</strong> Preparing landing party for northern continent</div>
+                <div class="log-entry"><strong>[57854.3]</strong> Atmosphere analysis complete - breathable with supplemental oxygen</div>
+            </div>
+            <button class="control-btn" id="add-log" style="margin-top: 15px;"><i class="fas fa-plus"></i> Add Log Entry</button>
+        </div>
+    </div>
+
+    <script>
+        // Create stars in background
+        function createStars() {
+            const container = document.body;
+            const starCount = 150;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // Random size
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Random opacity and animation duration
+                star.style.opacity = Math.random() * 0.8 + 0.1;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                
+                container.appendChild(star);
+            }
+        }
+        
+        // Initialize solar system with hyper-realistic details
+        function initSolarSystem() {
+            const systemDisplay = document.getElementById('system-display');
+            
+            // Create sun with realistic flare animation
+            const sun = document.createElement('div');
+            sun.classList.add('sun');
+            systemDisplay.appendChild(sun);
+            
+            // Planet data with realistic colors and details
+            const planets = [
+                { 
+                    name: 'Mercury', 
+                    size: 12, 
+                    color: 'linear-gradient(135deg, #a9a9a9, #5a5a5a)',
+                    orbit: 100, 
+                    speed: 4
+                },
+                { 
+                    name: 'Venus', 
+                    size: 18, 
+                    color: 'linear-gradient(135deg, #e39e1c, #b87333)',
+                    orbit: 140, 
+                    speed: 3,
+                    atmosphere: true
+                },
+                { 
+                    name: 'Earth', 
+                    size: 20, 
+                    color: 'linear-gradient(135deg, #3498db, #2c3e50)',
+                    orbit: 180, 
+                    speed: 2.5,
+                    atmosphere: true
+                },
+                { 
+                    name: 'Mars', 
+                    size: 16, 
+                    color: 'linear-gradient(135deg, #e74c3c, #8b4513)',
+                    orbit: 220, 
+                    speed: 2
+                },
+                { 
+                    name: 'Jupiter', 
+                    size: 40, 
+                    color: 'linear-gradient(135deg, #f39c12, #d35400)',
+                    orbit: 280, 
+                    speed: 1.2,
+                    atmosphere: true
+                },
+                { 
+                    name: 'Saturn', 
+                    size: 35, 
+                    color: 'linear-gradient(135deg, #f1c40f, #e67e22)',
+                    orbit: 340, 
+                    speed: 0.9,
+                    rings: true
+                },
+                { 
+                    name: 'Uranus', 
+                    size: 30, 
+                    color: 'linear-gradient(135deg, #1abc9c, #16a085)',
+                    orbit: 400, 
+                    speed: 0.7,
+                    atmosphere: true
+                },
+                { 
+                    name: 'Neptune', 
+                    size: 28, 
+                    color: 'linear-gradient(135deg, #2980b9, #2c3e50)',
+                    orbit: 450, 
+                    speed: 0.5,
+                    atmosphere: true
+                }
+            ];
+            
+            // Create planets and orbits with realistic details
+            planets.forEach((planet, index) => {
+                // Create orbit path
+                const orbit = document.createElement('div');
+                orbit.classList.add('orbit');
+                orbit.style.width = `${planet.orbit * 2}px`;
+                orbit.style.height = `${planet.orbit * 2}px`;
+                orbit.style.animation = `orbit ${planet.speed * 20}s linear infinite`;
+                systemDisplay.appendChild(orbit);
+                
+                // Create planet container
+                const planetEl = document.createElement('div');
+                planetEl.classList.add('planet');
+                planetEl.style.width = `${planet.size}px`;
+                planetEl.style.height = `${planet.size}px`;
+                planetEl.style.left = `calc(50% + ${planet.orbit}px)`;
+                planetEl.style.top = '50%';
+                planetEl.style.transform = 'translate(-50%, -50%)';
+                planetEl.dataset.name = planet.name;
+                
+                // Add planet detail with color gradient
+                const planetDetail = document.createElement('div');
+                planetDetail.classList.add('planet-detail');
+                planetDetail.style.background = planet.color;
+                planetDetail.style.width = '100%';
+                planetDetail.style.height = '100%';
+                planetEl.appendChild(planetDetail);
+                
+                // Add atmosphere glow if applicable
+                if (planet.atmosphere) {
+                    planetDetail.style.boxShadow = `0 0 20px 5px rgba(100, 200, 255, 0.3)`;
+                }
+                
+                // Add rings for Saturn
+                if (planet.rings) {
+                    const rings = document.createElement('div');
+                    rings.classList.add('ring');
+                    rings.style.width = `${planet.size * 1.8}px`;
+                    rings.style.height = `${planet.size * 0.4}px`;
+                    rings.style.background = 'transparent';
+                    rings.style.border = '8px solid rgba(210, 180, 140, 0.5)';
+                    rings.style.borderRadius = '50%';
+                    rings.style.transform = 'translate(-50%, -50%) rotateX(75deg)';
+                    rings.style.boxShadow = '0 0 10px rgba(210, 180, 140, 0.7)';
+                    planetEl.appendChild(rings);
+                }
+                
+                // Add click event with detailed information
+                planetEl.addEventListener('click', () => {
+                    const info = `
+                        <h3>${planet.name}</h3>
+                        <p><strong>Orbital Distance:</strong> ${planet.orbit} million km</p>
+                        <p><strong>Orbital Period:</strong> ${(planet.speed * 20).toFixed(1)} seconds</p>
+                        <p><strong>Diameter:</strong> ${planet.size * 1000} km</p>
+                        ${planet.atmosphere ? '<p><strong>Atmosphere:</strong> Present</p>' : ''}
+                        ${planet.rings ? '<p><strong>Ring System:</strong> Extensive</p>' : ''}
+                    `;
+                    
+                    // Create a modal for planet info
+                    const modal = document.createElement('div');
+                    modal.style.position = 'fixed';
+                    modal.style.top = '0';
+                    modal.style.left = '0';
+                    modal.style.width = '100%';
+                    modal.style.height = '100%';
+                    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                    modal.style.display = 'flex';
+                    modal.style.justifyContent = 'center';
+                    modal.style.alignItems = 'center';
+                    modal.style.zIndex = '1000';
+                    
+                    const modalContent = document.createElement('div');
+                    modalContent.style.backgroundColor = 'rgba(10, 25, 47, 0.95)';
+                    modalContent.style.padding = '30px';
+                    modalContent.style.borderRadius = '15px';
+                    modalContent.style.border = '1px solid rgba(100, 200, 255, 0.3)';
+                    modalContent.style.boxShadow = '0 0 30px rgba(0, 150, 255, 0.3)';
+                    modalContent.style.maxWidth = '500px';
+                    modalContent.style.color = '#e0f7fa';
+                    modalContent.innerHTML = info;
+                    
+                    const closeBtn = document.createElement('button');
+                    closeBtn.textContent = 'Close';
+                    closeBtn.style.marginTop = '20px';
+                    closeBtn.style.padding = '10px 20px';
+                    closeBtn.style.backgroundColor = '#0288d1';
+                    closeBtn.style.color = 'white';
+                    closeBtn.style.border = 'none';
+                    closeBtn.style.borderRadius = '5px';
+                    closeBtn.style.cursor = 'pointer';
+                    closeBtn.addEventListener('click', () => {
+                        document.body.removeChild(modal);
+                    });
+                    
+                    modalContent.appendChild(closeBtn);
+                    modal.appendChild(modalContent);
+                    document.body.appendChild(modal);
+                });
+                
+                systemDisplay.appendChild(planetEl);
+            });
+            
+            // Center the solar system display
+            systemDisplay.style.display = 'flex';
+            systemDisplay.style.justifyContent = 'center';
+            systemDisplay.style.alignItems = 'center';
+            
+            // Add zoom functionality
+            let currentScale = 1;
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                currentScale *= 1.2;
+                systemDisplay.style.transform = `scale(${currentScale})`;
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                currentScale /= 1.2;
+                systemDisplay.style.transform = `scale(${currentScale})`;
+            });
+        }
+        
+        // Initialize sensor chart
+        function initChart() {
+            const ctx = document.getElementById('sensor-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Radiation', 'Gravity', 'Atmosphere', 'Temperature', 'Magnetic Field', 'Organic Matter'],
+                    datasets: [{
+                        label: 'Planetary Conditions',
+                        data: [85, 70, 65, 60, 75, 40],
+                        backgroundColor: 'rgba(41, 182, 246, 0.2)',
+                        borderColor: 'rgba(41, 182, 246, 1)',
+                        pointBackgroundColor: 'rgba(41, 182, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(41, 182, 246, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#e0f7fa'
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: 'rgba(255, 255, 255, 0.5)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0f7fa'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return chart;
+        }
+        
+        // Add event listeners
+        function setupEventListeners(chart) {
+            // Mission control buttons
+            document.getElementById('launch-btn').addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Launching...';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-play"></i> Initiate Launch';
+                    alert('🚀 Launch sequence initiated! All systems nominal.');
+                }, 2000);
+            });
+            
+            document.getElementById('scan-btn').addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> Scanning...';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-satellite-dish"></i> Deep Scan';
+                    alert('🔍 Scan complete! Detected unusual energy signatures from the northern continent.');
+                }, 3000);
+            });
+            
+            document.getElementById('warp-btn').addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-cogs fa-spin"></i> Engaging...';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-star"></i> Engage Warp Drive';
+                    alert('✨ Warp drive engaged! Destination: Proxima Centauri b. ETA: 7.3 years');
+                }, 2500);
+            });
+            
+            // Message sending
+            document.getElementById('send-btn').addEventListener('click', function() {
+                const input = document.getElementById('message-input');
+                const message = input.value.trim();
+                if (message) {
+                    const container = document.getElementById('message-container');
+                    const messageEl = document.createElement('div');
+                    messageEl.classList.add('message');
+                    messageEl.innerHTML = `<strong>You:</strong> ${message}`;
+                    container.appendChild(messageEl);
+                    container.scrollTop = container.scrollHeight;
+                    input.value = '';
+                    
+                    // Simulate response after delay
+                    setTimeout(() => {
+                        const responses = [
+                            "Message received loud and clear.",
+                            "Please clarify your last transmission.",
+                            "Standby for further instructions.",
+                            "Affirmative, proceeding as instructed."
+                        ];
+                        const response = responses[Math.floor(Math.random() * responses.length)];
+                        const responseEl = document.createElement('div');
+                        responseEl.classList.add('message');
+                        responseEl.innerHTML = `<strong>Mission Control:</strong> ${response}`;
+                        container.appendChild(responseEl);
+                        container.scrollTop = container.scrollHeight;
+                    }, 1500);
+                }
+            });
+            
+            // Spaceship rotation
+            const spaceship = document.getElementById('spaceship-model');
+            let rotation = 0;
+            
+            document.getElementById('rotate-left').addEventListener('click', function() {
+                rotation -= 45;
+                spaceship.style.transform = `rotate(${rotation}deg)`;
+            });
+            
+            document.getElementById('rotate-right').addEventListener('click', function() {
+                rotation += 45;
+                spaceship.style.transform = `rotate(${rotation}deg)`;
+            });
+            
+            // Spaceship click
+            spaceship.addEventListener('click', function() {
+                const status = document.getElementById('spaceship-status');
+                status.innerHTML = 'Engines firing!';
+                status.style.color = '#76ff03';
+                
+                this.style.background = 'linear-gradient(45deg, #5a81a6, #9a355e)';
+                this.style.boxShadow = '0 0 30px rgba(255, 100, 100, 0.7)';
+                
+                setTimeout(() => {
+                    status.innerHTML = 'Systems Nominal';
+                    status.style.color = '#e0f7fa';
+                    this.style.background = 'linear-gradient(45deg, #3a6186, #89253e)';
+                    this.style.boxShadow = '';
+                }, 3000);
+            });
+            
+            // Add log entry
+            document.getElementById('add-log').addEventListener('click', function() {
+                const entries = [
+                    "Deployed atmospheric probe",
+                    "Surface samples collected",
+                    "Discovered crystalline formations",
+                    "Detected microbial life in soil samples",
+                    "Mapped new geological features"
+                ];
+                const entry = entries[Math.floor(Math.random() * entries.length)];
+                const logContainer = document.getElementById('log-entries');
+                const logEntry = document.createElement('div');
+                logEntry.classList.add('log-entry');
+                logEntry.innerHTML = `<strong>[${(57854.3 + Math.random() * 0.2).toFixed(1)}]</strong> ${entry}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            });
+            
+            // Refresh chart data
+            document.getElementById('refresh-data').addEventListener('click', function() {
+                const newData = Array.from({length: 6}, () => Math.floor(Math.random() * 40) + 40);
+                chart.data.datasets[0].data = newData;
+                chart.update();
+                this.innerHTML = '<i class="fas fa-check"></i> Refreshed';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                }, 2000);
+            });
+        }
+        
+        // Initialize the dashboard
+        window.onload = function() {
+            createStars();
+            initSolarSystem();
+            const chart = initChart();
+            setupEventListeners(chart);
+            
+            // Animate status indicator
+            setInterval(() => {
+                const indicator = document.getElementById('status-indicator');
+                indicator.classList.toggle('online');
+                indicator.classList.toggle('offline');
+                if (indicator.classList.contains('online')) {
+                    indicator.innerHTML = '<i class="fas fa-circle"></i> ONLINE';
+                    indicator.style.color = '#76ff03';
+                } else {
+                    indicator.innerHTML = '<i class="fas fa-circle"></i> OFFLINE';
+                    indicator.style.color = '#ff5252';
+                    setTimeout(() => {
+                        indicator.classList.remove('offline');
+                        indicator.classList.add('online');
+                        indicator.innerHTML = '<i class="fas fa-circle"></i> ONLINE';
+                        indicator.style.color = '#76ff03';
+                    }, 1000);
+                }
+            }, 5000);
+        };
+    </script>
+</body>
+</html>
