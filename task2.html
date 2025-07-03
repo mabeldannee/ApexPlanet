@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Life Tracker | Level Up Your Productivity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --dark-purple: #1a0a2e;
+            --deep-purple: #2a1153;
+            --glow-purple: #6a0dad;
+            --emerald: #00cc66;
+            --sapphire: #0077cc;
+            --gold: #ffcc00;
+            --silver: #c0c0c0;
+            --scroll-bg: #0f0521;
+            --scroll-border: #3a1c6e;
+            --parchment: #f5e9c9;
+            --rune-gold: #d4af37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background: radial-gradient(circle at center, var(--deep-purple), var(--dark-purple));
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="white" d="M7 2L2 7v8l5 5h8l5-5V7l-5-5H7z"/></svg>'), auto;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(106, 13, 173, 0.1) 0px, transparent 2px),
+                radial-gradient(circle at 80% 70%, rgba(0, 119, 204, 0.1) 0px, transparent 2px),
+                radial-gradient(circle at 40% 60%, rgba(0, 204, 102, 0.1) 0px, transparent 2px);
+            background-size: 300px 300px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(106, 13, 173, 0.5);
+            animation: float 15s infinite linear;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Login Screen Styles */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .scroll-container {
+            background: var(--scroll-bg);
+            border: 3px solid var(--scroll-border);
+            border-radius: 12px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(106, 13, 173, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--scroll-border), transparent);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .scroll-container::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to top, var(--scroll-border), transparent);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .login-title {
+            font-family: 'Cinzel Decorative', cursive;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+            position: relative;
+        }
+
+        .login-title::after {
+            content: "";
+            display: block;
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent);
+            margin: 10px auto;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--silver);
+            font-size: 1.1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(10, 5, 20, 0.7);
+            border: 2px solid var(--glow-purple);
+            border-radius: 8px;
+            color: white;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--emerald);
+            box-shadow: 0 0 15px rgba(0, 204, 102, 0.5);
+            background: rgba(15, 10, 30, 0.9);
+        }
+
+        .avatar-selection {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .avatar-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(10, 5, 20, 0.5);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-option:hover {
+            transform: translateY(-5px);
+            background: rgba(42, 17, 83, 0.7);
+            border-color: var(--glow-purple);
+        }
+
+        .avatar-option.selected {
+            background: rgba(42, 17, 83, 0.9);
+            border-color: var(--emerald);
+            box-shadow: 0 0 15px rgba(0, 204, 102, 0.5);
+        }
+
+        .avatar-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to bottom, var(--gold), #e6b800);
+            border: none;
+            border-radius: 8px;
+            color: var(--dark-purple);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            background: linear-gradient(to bottom, #666, #555);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(255, 204, 0, 0.4);
+        }
+
+        .btn:not(:disabled)::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(25deg);
+            transition: all 0.5s;
+        }
+
+        .btn:not(:disabled):hover::after {
+            left: 120%;
+        }
+
+        /* Dashboard Styles */
+        #dashboard-screen {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(10, 5, 20, 0.8);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid var(--glow-purple);
+            box-shadow: 0 0 20px rgba(106, 13, 173, 0.4);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--deep-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.4rem;
+            color: var(--gold);
+        }
+
+        .user-class {
+            font-size: 0.9rem;
+            color: var(--silver);
+        }
+
+        .xp-container {
+            text-align: right;
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(to bottom, var(--gold), #e6b800);
+            color: var(--dark-purple);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+        }
+
+        .xp-bar-container {
+            width: 300px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--glow-purple);
+            position: relative;
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--emerald), var(--sapphire));
+            width: 45%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .xp-bar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: xp-glow 2s infinite;
+        }
+
+        .xp-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: rgba(10, 5, 20, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--glow-purple);
+            box-shadow: 0 0 20px rgba(106, 13, 173, 0.4);
+        }
+
+        .nav-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(106, 13, 173, 0.3);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(106, 13, 173, 0.6);
+            box-shadow: 0 0 10px rgba(106, 13, 173, 0.5);
+        }
+
+        .main-content {
+            background: rgba(10, 5, 20, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--glow-purple);
+            box-shadow: 0 0 20px rgba(106, 13, 173, 0.4);
+            min-height: 500px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            border-bottom: 2px solid var(--glow-purple);
+            padding-bottom: 10px;
+        }
+
+        /* Task Panel Styles */
+        .task-form {
+            background: rgba(15, 8, 30, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--sapphire);
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(0, 119, 204, 0.4);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            background: rgba(15, 8, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid var(--glow-purple);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(106, 13, 173, 0.5);
+            border-color: var(--emerald);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .task-xp {
+            background: var(--deep-purple);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: var(--emerald);
+            border: 1px solid var(--emerald);
+        }
+
+        .task-category {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .category-study { background: rgba(0, 119, 204, 0.3); border: 1px solid var(--sapphire); }
+        .category-fitness { background: rgba(0, 204, 102, 0.3); border: 1px solid var(--emerald); }
+        .category-mindset { background: rgba(106, 13, 173, 0.3); border: 1px solid var(--glow-purple); }
+        .category-chill { background: rgba(255, 204, 0, 0.3); border: 1px solid var(--gold); }
+
+        .task-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .status-pending { background: rgba(192, 192, 192, 0.3); border: 1px solid var(--silver); }
+        .status-completed { background: rgba(0, 204, 102, 0.3); border: 1px solid var(--emerald); }
+
+        .complete-btn {
+            background: linear-gradient(to bottom, var(--emerald), #00b359);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            color: white;
+            font-family: 'MedievalSharp', cursive;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .complete-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0, 204, 102, 0.5);
+        }
+
+        /* Achievements Panel */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-card {
+            background: rgba(15, 8, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid var(--gold);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            perspective: 1000px;
+            height: 250px;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 204, 0, 0.4);
+        }
+
+        .achievement-icon {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .achievement-name {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+
+        .achievement-desc {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            color: var(--silver);
+        }
+
+        .achievement-xp {
+            font-weight: bold;
+            color: var(--emerald);
+        }
+
+        .locked {
+            border-color: var(--silver);
+            opacity: 0.6;
+        }
+
+        .locked .achievement-icon {
+            color: var(--silver);
+            text-shadow: none;
+        }
+
+        .locked .achievement-name {
+            color: var(--silver);
+        }
+
+        /* Add Task Button */
+        .add-task-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, var(--emerald), #00b359);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+            border: 2px solid white;
+        }
+
+        .add-task-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 0 20px rgba(0, 204, 102, 0.7);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-20px) translateX(10px); }
+            100% { transform: translateY(0) translateX(0); }
+        }
+
+        @keyframes xp-glow {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--emerald); }
+            50% { box-shadow: 0 0 20px var(--emerald); }
+            100% { box-shadow: 0 0 5px var(--emerald); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                margin-bottom: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .xp-container {
+                width: 100%;
+                text-align: left;
+            }
+            
+            .xp-bar-container {
+                width: 100%;
+            }
+            
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .login-title {
+                font-size: 2rem;
+            }
+            
+            .avatar-selection {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="app-container">
+            <div class="scroll-container">
+                <h1 class="login-title">RPG Life Tracker</h1>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" class="form-input" placeholder="Enter your name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="your.email@domain.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Choose Your Class</label>
+                    <div class="avatar-selection">
+                        <div class="avatar-option" data-class="warrior">
+                            <div class="avatar-icon">⚔️</div>
+                            <div>Warrior</div>
+                        </div>
+                        <div class="avatar-option" data-class="mage">
+                            <div class="avatar-icon">🔮</div>
+                            <div>Mage</div>
+                        </div>
+                        <div class="avatar-option" data-class="rogue">
+                            <div class="avatar-icon">🏹</div>
+                            <div>Rogue</div>
+                        </div>
+                        <div class="avatar-option" data-class="healer">
+                            <div class="avatar-icon">💖</div>
+                            <div>Healer</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="start-btn" class="btn" disabled>Start Adventure</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen">
+        <div class="app-container">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">⚔️</div>
+                    <div class="user-details">
+                        <div class="username" id="username">Adventurer</div>
+                        <div class="user-class" id="user-class">Warrior</div>
+                    </div>
+                </div>
+                
+                <div class="xp-container">
+                    <div class="level-badge">Level <span id="level">1</span></div>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar" id="xp-bar"></div>
+                        <div class="xp-text" id="xp-text">45/100 XP</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="sidebar">
+                    <div class="nav-item active" data-target="dashboard">
+                        <i class="fas fa-home"></i> Dashboard
+                    </div>
+                    <div class="nav-item" data-target="tasks">
+                        <i class="fas fa-tasks"></i> Tasks
+                    </div>
+                    <div class="nav-item" data-target="achievements">
+                        <i class="fas fa-trophy"></i> Achievements
+                    </div>
+                    <div class="nav-item" data-target="settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </div>
+                </div>
+                
+                <div class="main-content">
+                    <!-- Dashboard Panel -->
+                    <div class="content-section active" id="dashboard-panel">
+                        <h2 class="section-title">Quest Dashboard</h2>
+                        <div class="stats-container">
+                            <p>Welcome back, <span id="user-name-display">Adventurer</span>! Ready to conquer today's challenges?</p>
+                            <div class="task-form">
+                                <h3>Add New Quest</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="task-title">Quest Title</label>
+                                        <input type="text" id="task-title" class="form-input" placeholder="What needs to be done?">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="task-category">Category</label>
+                                        <select id="task-category" class="form-input">
+                                            <option value="study">Study 📚</option>
+                                            <option value="fitness">Fitness 💪</option>
+                                            <option value="mindset">Mindset 🧠</option>
+                                            <option value="chill">Chill 🛋️</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="task-xp">XP Reward (10-100)</label>
+                                        <input type="number" id="task-xp" class="form-input" min="10" max="100" value="20">
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="add-task-btn" class="btn">Add Quest</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tasks Panel -->
+                    <div class="content-section" id="tasks-panel">
+                        <h2 class="section-title">Active Quests</h2>
+                        <div class="task-grid" id="task-list">
+                            <!-- Tasks will be added here dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Achievements Panel -->
+                    <div class="content-section" id="achievements-panel">
+                        <h2 class="section-title">Achievements</h2>
+                        <div class="achievements-grid" id="achievements-list">
+                            <!-- Achievements will be added here dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Panel -->
+                    <div class="content-section" id="settings-panel">
+                        <h2 class="section-title">Settings</h2>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>Sound Effects</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="sound-toggle" checked>
+                                    <label for="sound-toggle">Enabled</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Animations</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="animations-toggle" checked>
+                                    <label for="animations-toggle">Enabled</label>
+                                </div>
+                            </div>
+                            <button id="reset-btn" class="btn">Reset Progress</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Task Button -->
+    <div class="add-task-btn" id="floating-add-btn">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <script>
+        // User data structure
+        const userData = {
+            name: "",
+            email: "",
+            class: "warrior",
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            tasks: [],
+            achievements: []
+        };
+
+        // Achievements data
+        const achievements = [
+            { id: 1, name: "Sword of Focus", description: "Complete 5 study tasks", xp: 100, icon: "⚔️", unlocked: false },
+            { id: 2, name: "Cloak of Discipline", description: "Complete 10 tasks", xp: 200, icon: "🧥", unlocked: false },
+            { id: 3, name: "Crown of Consistency", description: "Complete tasks for 7 consecutive days", xp: 300, icon: "👑", unlocked: false },
+            { id: 4, name: "Amulet of Resilience", description: "Complete 5 fitness tasks", xp: 150, icon: "📿", unlocked: false },
+            { id: 5, name: "Tome of Knowledge", description: "Earn 500 XP", xp: 500, icon: "📖", unlocked: false },
+            { id: 6, name: "Orb of Balance", description: "Complete tasks in all categories", xp: 250, icon: "🔮", unlocked: false }
+        ];
+
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const avatarOptions = document.querySelectorAll('.avatar-option');
+        const userAvatar = document.getElementById('user-avatar');
+        const usernameDisplay = document.getElementById('username');
+        const userClassDisplay = document.getElementById('user-class');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const levelDisplay = document.getElementById('level');
+        const xpBar = document.getElementById('xp-bar');
+        const xpText = document.getElementById('xp-text');
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const taskList = document.getElementById('task-list');
+        const achievementsList = document.getElementById('achievements-list');
+        const taskTitleInput = document.getElementById('task-title');
+        const taskCategoryInput = document.getElementById('task-category');
+        const taskXpInput = document.getElementById('task-xp');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const floatingAddBtn = document.getElementById('floating-add-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Initialize particles
+        function initParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size
+                const size = Math.random() * 5 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            const nameValid = nameInput.value.trim() !== '';
+            const emailValid = validateEmail(emailInput.value);
+            const classSelected = userData.class !== '';
+            
+            startBtn.disabled = !(nameValid && emailValid && classSelected);
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Avatar selection
+        avatarOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                avatarOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                userData.class = option.dataset.class;
+                validateForm();
+            });
+        });
+
+        // Start adventure
+        startBtn.addEventListener('click', () => {
+            userData.name = nameInput.value.trim();
+            userData.email = emailInput.value;
+            
+            // Update UI with user data
+            usernameDisplay.textContent = userData.name;
+            userNameDisplay.textContent = userData.name;
+            userClassDisplay.textContent = userData.class.charAt(0).toUpperCase() + userData.class.slice(1);
+            
+            // Set avatar based on class
+            switch(userData.class) {
+                case 'warrior':
+                    userAvatar.textContent = '⚔️';
+                    break;
+                case 'mage':
+                    userAvatar.textContent = '🔮';
+                    break;
+                case 'rogue':
+                    userAvatar.textContent = '🏹';
+                    break;
+                case 'healer':
+                    userAvatar.textContent = '💖';
+                    break;
+            }
+            
+            // Switch to dashboard
+            loginScreen.style.display = 'none';
+            dashboardScreen.style.display = 'block';
+            
+            // Load initial tasks and achievements
+            loadTasks();
+            loadAchievements();
+            updateXpDisplay();
+        });
+
+        // Navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const target = item.dataset.target;
+                
+                // Update active nav item
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Show target section
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${target}-panel`) {
+                        section.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Add task
+        addTaskBtn.addEventListener('click', addTask);
+        floatingAddBtn.addEventListener('click', () => {
+            // Switch to tasks panel and open form
+            navItems.forEach(nav => nav.classList.remove('active'));
+            document.querySelector('.nav-item[data-target="tasks"]').classList.add('active');
+            
+            contentSections.forEach(section => section.classList.remove('active'));
+            document.getElementById('tasks-panel').classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        });
+
+        function addTask() {
+            const title = taskTitleInput.value.trim();
+            const category = taskCategoryInput.value;
+            const xp = parseInt(taskXpInput.value);
+            
+            if (title === '' || isNaN(xp) || xp < 10 || xp > 100) {
+                alert('Please enter a valid task title and XP value (10-100)');
+                return;
+            }
+            
+            const task = {
+                id: Date.now(),
+                title,
+                category,
+                xp,
+                completed: false,
+                createdAt: new Date()
+            };
+            
+            userData.tasks.push(task);
+            renderTask(task);
+            
+            // Reset form
+            taskTitleInput.value = '';
+            taskXpInput.value = '20';
+            
+            // Show success effect
+            addTaskBtn.innerHTML = 'Quest Added!';
+            addTaskBtn.style.background = 'linear-gradient(to bottom, var(--emerald), #00b359)';
+            setTimeout(() => {
+                addTaskBtn.innerHTML = 'Add Quest';
+                addTaskBtn.style.background = 'linear-gradient(to bottom, var(--gold), #e6b800)';
+            }, 1500);
+        }
+
+        // Load and render tasks
+        function loadTasks() {
+            taskList.innerHTML = '';
+            
+            // Sample tasks for demo
+            const sampleTasks = [
+                { id: 1, title: "Complete project proposal", category: "study", xp: 30, completed: false },
+                { id: 2, title: "Morning jog 30 mins", category: "fitness", xp: 25, completed: true },
+                { id: 3, title: "Meditate for 15 minutes", category: "mindset", xp: 20, completed: false }
+            ];
+            
+            userData.tasks = [...sampleTasks, ...userData.tasks];
+            
+            userData.tasks.forEach(task => renderTask(task));
+        }
+
+        function renderTask(task) {
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.dataset.id = task.id;
+            
+            const categoryClass = `category-${task.category}`;
+            const categoryLabel = 
+                task.category === 'study' ? 'Study 📚' : 
+                task.category === 'fitness' ? 'Fitness 💪' : 
+                task.category === 'mindset' ? 'Mindset 🧠' : 'Chill 🛋️';
+            
+            taskCard.innerHTML = `
+                <div class="task-header">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-xp">+${task.xp} XP</div>
+                </div>
+                <div class="task-category ${categoryClass}">${categoryLabel}</div>
+                <div class="task-description">Complete this quest to earn experience and level up!</div>
+                <div class="task-status">
+                    <div class="status-badge ${task.completed ? 'status-completed' : 'status-pending'}">
+                        ${task.completed ? 'Completed' : 'Pending'}
+                    </div>
+                    ${!task.completed ? 
+                        `<button class="complete-btn" data-id="${task.id}">Complete Quest</button>` : 
+                        `<div class="completed-date">Completed</div>`}
+                </div>
+            `;
+            
+            taskList.appendChild(taskCard);
+            
+            if (!task.completed) {
+                const completeBtn = taskCard.querySelector('.complete-btn');
+                completeBtn.addEventListener('click', () => completeTask(task.id));
+            }
+        }
+
+        // Complete task
+        function completeTask(taskId) {
+            const task = userData.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = true;
+                
+                // Add XP
+                userData.xp += task.xp;
+                
+                // Check for level up
+                if (userData.xp >= userData.xpToNextLevel) {
+                    levelUp();
+                }
+                
+                // Update display
+                updateXpDisplay();
+                
+                // Re-render tasks
+                loadTasks();
+                
+                // Check achievements
+                checkAchievements();
+            }
+        }
+
+        // Level up
+        function levelUp() {
+            userData.level++;
+            userData.xp -= userData.xpToNextLevel;
+            userData.xpToNextLevel = Math.floor(userData.xpToNextLevel * 1.5);
+            
+            // Show level up effect
+            levelDisplay.textContent = userData.level;
+            levelDisplay.parentElement.classList.add('glowing');
+            setTimeout(() => {
+                levelDisplay.parentElement.classList.remove('glowing');
+            }, 3000);
+        }
+
+        // Update XP display
+        function updateXpDisplay() {
+            const percentage = (userData.xp / userData.xpToNextLevel) * 100;
+            xpBar.style.width = `${percentage}%`;
+            xpText.textContent = `${userData.xp}/${userData.xpToNextLevel} XP`;
+        }
+
+        // Load achievements
+        function loadAchievements() {
+            achievementsList.innerHTML = '';
+            
+            achievements.forEach(achievement => {
+                const achievementCard = document.createElement('div');
+                achievementCard.className = `achievement-card ${achievement.unlocked ? '' : 'locked'}`;
+                
+                achievementCard.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-desc">${achievement.description}</div>
+                    <div class="achievement-xp">+${achievement.xp} XP</div>
+                `;
+                
+                achievementsList.appendChild(achievementCard);
+            });
+        }
+
+        // Check achievements
+        function checkAchievements() {
+            // Simple implementation - unlock first achievement when XP reaches 100
+            if (userData.xp >= 100 && !achievements[0].unlocked) {
+                achievements[0].unlocked = true;
+                loadAchievements();
+            }
+        }
+
+        // Reset progress
+        resetBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all your progress?')) {
+                userData.level = 1;
+                userData.xp = 0;
+                userData.xpToNextLevel = 100;
+                userData.tasks = [];
+                
+                achievements.forEach(a => a.unlocked = false);
+                
+                updateXpDisplay();
+                loadTasks();
+                loadAchievements();
+            }
+        });
+
+        // Input validation
+        nameInput.addEventListener('input', validateForm);
+        emailInput.addEventListener('input', validateForm);
+
+        // Initialize
+        initParticles();
+        validateForm();
+    </script>
+</body>
+</html>
