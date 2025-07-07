@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Drift</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --neon-blue: #0fa;
+            --neon-purple: #a0f;
+            --deep-space: #001220;
+            --star-light: rgba(255, 255, 255, 0.8);
+            --warning-red: #f44;
+            --panel-dark: rgba(0, 20, 40, 0.85);
+            --panel-light: rgba(0, 40, 80, 0.7);
+            --text-glow: rgba(0, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--deep-space);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 20%);
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* Starfield Animation */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration, 5s) infinite ease-in-out;
+            opacity: var(--opacity, 0.8);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-100vh) translateX(-100vw); }
+        }
+
+        /* Black Hole Animation */
+        .black-hole {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, 
+                rgba(0, 0, 0, 0) 0%, 
+                rgba(0, 0, 0, 0) 50%, 
+                rgba(0, 100, 200, 0.3) 70%, 
+                rgba(100, 0, 200, 0.6) 90%);
+            box-shadow: 0 0 100px 50px rgba(100, 0, 200, 0.3);
+            animation: pulse 8s infinite alternate;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Wormhole Animation */
+        .wormhole {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, 
+                transparent 0%, 
+                rgba(0, 200, 255, 0.1) 40%, 
+                rgba(100, 0, 255, 0.3) 60%, 
+                transparent 100%);
+            animation: swirl 60s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes swirl {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--neon-blue);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            font-weight: 700;
+        }
+
+        /* Game HUD */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--panel-dark);
+            border: 1px solid var(--neon-purple);
+            border-radius: 8px;
+            box-shadow: 0 0 15px var(--neon-purple);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-name {
+            font-size: 1rem;
+            color: var(--neon-blue);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .stat-bar {
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 5px;
+            border: 1px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        #fuel-fill {
+            background: linear-gradient(90deg, var(--neon-blue), #0a8);
+            width: 100%;
+        }
+
+        #morale-fill {
+            background: linear-gradient(90deg, var(--neon-purple), #80a);
+            width: 100%;
+        }
+
+        #integrity-fill {
+            background: linear-gradient(90deg, var(--warning-red), #a00);
+            width: 100%;
+        }
+
+        .stat-value {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Game Content */
+        .game-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .scene {
+            background-color: var(--panel-dark);
+            border: 1px solid var(--neon-blue);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .scene::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .scene-title {
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 5px var(--neon-blue);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .scene-text {
+            margin-bottom: 25px;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            background: rgba(0, 10, 30, 0.4);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 3px solid var(--neon-purple);
+            box-shadow: inset 0 0 10px rgba(0, 200, 255, 0.2);
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background-color: var(--panel-light);
+            border: 1px solid var(--neon-purple);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+
+        .choice-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(0, 255, 170, 0.1) 0%, 
+                rgba(160, 0, 255, 0.2) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            background-color: rgba(160, 255, 255, 0.1);
+            box-shadow: 0 0 15px var(--neon-purple);
+            transform: translateX(5px);
+        }
+
+        .choice-btn:hover::before {
+            opacity: 1;
+        }
+
+        .choice-btn::after {
+            content: "▶";
+            position: absolute;
+            left: -20px;
+            transition: all 0.3s ease;
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+        }
+
+        .choice-btn:hover::after {
+            left: 10px;
+        }
+
+        /* Choice Background Effects */
+        .choice-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        .choice-bg.active {
+            opacity: 0.3;
+        }
+
+        /* API Image Display */
+        .api-image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .api-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 255, 170, 0.4);
+            object-fit: cover;
+        }
+
+        .api-title {
+            margin-top: 15px;
+            color: var(--neon-purple);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-shadow: 0 0 5px var(--neon-purple);
+        }
+
+        .api-explanation {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #ccc;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+
+        /* Log Carousel */
+        .log-carousel {
+            margin-top: 30px;
+            background-color: var(--panel-dark);
+            border: 1px solid var(--neon-purple);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .carousel-title {
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 15px;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-purple) transparent;
+        }
+
+        .carousel-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .carousel-container::-webkit-scrollbar-thumb {
+            background-color: var(--neon-purple);
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            min-width: 250px;
+            scroll-snap-align: start;
+            background-color: var(--panel-light);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-blue);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .log-date {
+            font-size: 0.85rem;
+            color: var(--neon-purple);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .log-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Launch Sequence */
+        .launch-sequence {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .launch-title {
+            font-size: 3rem;
+            text-shadow: 0 0 15px var(--neon-blue);
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+            font-weight: 800;
+            letter-spacing: 4px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .countdown {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .progress-bar {
+            width: 80%;
+            max-width: 500px;
+            height: 25px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Name Input */
+        .name-input {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .name-input label {
+            font-size: 1.2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        .name-input input {
+            background-color: rgba(0, 30, 60, 0.5);
+            border: 2px solid var(--neon-blue);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            outline: none;
+            width: 300px;
+            max-width: 80%;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .name-input button {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: var(--deep-space);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+        }
+
+        .name-input button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        /* Ending Screen */
+        .ending-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .ending-content {
+            max-width: 900px;
+            width: 90%;
+            background: rgba(0, 20, 40, 0.9);
+            border-radius: 15px;
+            padding: 40px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 40px rgba(0, 200, 255, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ending-title {
+            font-size: 2.8rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px currentColor;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .ending-success {
+            color: var(--neon-blue);
+        }
+
+        .ending-lost {
+            color: var(--warning-red);
+        }
+
+        .ending-sacrifice {
+            color: var(--neon-purple);
+        }
+
+        .ending-text {
+            max-width: 800px;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            text-align: left;
+            background: rgba(0, 10, 20, 0.6);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid var(--neon-purple);
+            box-shadow: inset 0 0 15px rgba(0, 100, 200, 0.3);
+        }
+
+        .ending-image-container {
+            margin: 20px 0;
+            max-width: 90%;
+        }
+
+        .ending-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 255, 170, 0.5);
+            object-fit: cover;
+        }
+
+        .ending-image-title {
+            margin-top: 15px;
+            color: var(--neon-purple);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: var(--deep-space);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.6);
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--neon-purple);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .scene {
+                padding: 20px;
+            }
+            
+            .scene-title {
+                font-size: 1.6rem;
+            }
+            
+            .scene-text {
+                font-size: 1.05rem;
+                padding: 15px;
+            }
+            
+            .choice-btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            .ending-content {
+                padding: 30px 20px;
+            }
+            
+            .ending-title {
+                font-size: 2.2rem;
+            }
+            
+            .ending-text {
+                font-size: 1.1rem;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .hud {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stat {
+                text-align: left;
+            }
+
+            .scene-title {
+                font-size: 1.5rem;
+            }
+            
+            .scene-text {
+                font-size: 1rem;
+            }
+
+            .launch-title {
+                font-size: 2.2rem;
+            }
+
+            .countdown {
+                font-size: 2.5rem;
+            }
+            
+            .ending-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .choices {
+                gap: 10px;
+            }
+
+            .choice-btn {
+                padding: 10px 15px;
+                font-size: 0.95rem;
+            }
+
+            .launch-title {
+                font-size: 1.8rem;
+            }
+            
+            .ending-title {
+                font-size: 1.8rem;
+            }
+            
+            .ending-text {
+                font-size: 1rem;
+            }
+            
+            .name-input input {
+                width: 90%;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="starfield" id="starfield"></div>
+    <div class="wormhole" id="wormhole"></div>
+    <div class="black-hole" id="blackHole"></div>
+    
+    <!-- Choice Backgrounds -->
+    <div class="choice-bg" id="nebulaBg" style="background: radial-gradient(circle, rgba(100,0,200,0.5) 0%, rgba(0,0,50,0) 70%);"></div>
+    <div class="choice-bg" id="pulsarBg" style="background: conic-gradient(from 0deg, rgba(0,200,255,0.3) 0%, rgba(100,0,255,0.3) 100%);"></div>
+    <div class="choice-bg" id="supernovaBg" style="background: radial-gradient(circle, rgba(255,100,0,0.4) 0%, rgba(50,0,0,0) 70%);"></div>
+
+    <!-- Launch Sequence -->
+    <div class="launch-sequence" id="launchSequence">
+        <h1 class="launch-title">STELLAR DRIFT</h1>
+        <div class="countdown" id="countdown">5</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p>Initializing navigation systems...</p>
+        <div class="name-input">
+            <label for="playerName">ENTER YOUR CALL SIGN:</label>
+            <input type="text" id="playerName" placeholder="Captain" maxlength="20">
+            <button id="startGameBtn">ENGAGE HYPERDRIVE</button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="container" id="gameContainer" style="display: none;">
+        <header>
+            <h1>STELLAR DRIFT</h1>
+            <p id="playerGreeting">Captain, the galaxy awaits your decisions...</p>
+        </header>
+
+        <!-- Game HUD -->
+        <div class="hud">
+            <div class="stat">
+                <div class="stat-name">FUEL</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="fuel-fill"></div>
+                </div>
+                <div class="stat-value" id="fuel-value">100%</div>
+            </div>
+            <div class="stat">
+                <div class="stat-name">CREW MORALE</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="morale-fill"></div>
+                </div>
+                <div class="stat-value" id="morale-value">100%</div>
+            </div>
+            <div class="stat">
+                <div class="stat-name">SHIP INTEGRITY</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="integrity-fill"></div>
+                </div>
+                <div class="stat-value" id="integrity-value">100%</div>
+            </div>
+        </div>
+
+        <!-- Current Scene -->
+        <div class="game-content">
+            <div class="scene" id="currentScene">
+                <!-- Scene content will be dynamically inserted here -->
+            </div>
+
+            <!-- API Image Display -->
+            <div class="api-image-container" id="apiImageContainer" style="display: none;">
+                <img class="api-image" id="apiImage" src="" alt="Space image from NASA API">
+                <div class="api-title" id="apiTitle"></div>
+                <div class="api-explanation" id="apiExplanation"></div>
+            </div>
+
+            <!-- Log Carousel -->
+            <div class="log-carousel" id="logCarousel" style="display: none;">
+                <h3 class="carousel-title">SHIP'S LOG</h3>
+                <div class="carousel-container" id="carouselContainer">
+                    <!-- Log entries will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ending Screen -->
+    <div class="ending-screen" id="endingScreen">
+        <div class="ending-content">
+            <h1 class="ending-title" id="endingTitle">MISSION COMPLETE</h1>
+            <div class="ending-text" id="endingText"></div>
+            <div class="ending-image-container">
+                <img class="ending-image" id="endingImage" src="" alt="Ending image">
+                <div class="ending-image-title" id="endingImageTitle"></div>
+            </div>
+            <button class="restart-btn" id="restartBtn">BEGIN NEW JOURNEY</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            playerName: "Captain",
+            currentScene: 0,
+            stats: {
+                fuel: 100,
+                morale: 100,
+                integrity: 100
+            },
+            logs: [],
+            choices: []
+        };
+
+        // Game Scenes - Enhanced with more dramatic Interstellar-style choices
+        const scenes = [
+            {
+                title: "GALACTIC COLLAPSE INITIATED",
+                text: "The Andromeda galaxy is collapsing into ours, creating catastrophic gravitational waves. As commander of the starship Horizon, you must navigate through the chaos to reach the safe zone. A damaged research station broadcasts a desperate plea - they claim to have discovered a way to stabilize the collapse, but stopping would cost precious time as the shockwave approaches.",
+                choices: [
+                    {
+                        text: "[DOCK WITH STATION] Risk precious minutes to potentially save billions (Fuel -25%, Morale +30%, Integrity -15%)",
+                        effect: { fuel: -25, morale: +30, integrity: -15 },
+                        log: "Docked with research station. Scientists claim breakthrough in collapse stabilization.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[CONTINUE COURSE] The mission comes first - we can't risk the Horizon (Fuel -5%, Morale -25%, Integrity -5%)",
+                        effect: { fuel: -5, morale: -25, integrity: -5 },
+                        log: "Left research station to fate. Distress calls faded as shockwave consumed them.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[TRANSMIT WARNING] Share evacuation coordinates without stopping (Fuel -10%, Morale +5%, Integrity -5%)",
+                        effect: { fuel: -10, morale: +5, integrity: -5 },
+                        log: "Beamed safe zone coordinates to station. Unknown if they escaped in time.",
+                        bg: "supernovaBg"
+                    }
+                ],
+                apiTrigger: true
+            },
+            {
+                title: "NEBULA CROSSING REQUIRED",
+                text: "The only path to the safe zone leads through the volatile Helix Nebula. Navigation reports extreme time dilation effects within - an hour inside could cost years outside. The crew grows uneasy as sensors detect massive gravitational distortions forming within the nebula's core.",
+                choices: [
+                    {
+                        text: "[CORE TRANSIT] Accept time dilation to save fuel (Fuel -10%, Morale -40%, Integrity -35%)",
+                        effect: { fuel: -10, morale: -40, integrity: -35 },
+                        log: "Entered nebula core. Ship systems malfunctioning from temporal stresses.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[PERIPHERY ROUTE] Add weeks to journey but reduce risks (Fuel -50%, Morale -15%, Integrity -10%)",
+                        effect: { fuel: -50, morale: -15, integrity: -10 },
+                        log: "Navigating nebula periphery. Long transit depleting resources.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[GRAVITY SLINGSHOT] Risky maneuver around collapsing star (Fuel -20%, Morale -25%, Integrity -25%)",
+                        effect: { fuel: -20, morale: -25, integrity: -25 },
+                        log: "Attempting gravity slingshot. Extreme g-forces straining hull.",
+                        bg: "supernovaBg"
+                    }
+                ]
+            },
+            {
+                title: "UNKNOWN CONTACT DETECTED",
+                text: "An enormous structure of unknown origin appears ahead - a perfect cube measuring exactly 1,000km per side. It pulses with eerie blue light as your crew reports severe time perception distortions. The ship's AI calculates a 23.7% chance this is related to the galactic collapse.",
+                choices: [
+                    {
+                        text: "[INITIATE CONTACT] Hail the structure despite risks (Fuel -15%, Morale +35%, Integrity -20%)",
+                        effect: { fuel: -15, morale: +35, integrity: -20 },
+                        log: "Attempted communication with alien structure. Received... something in reply.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[EVASIVE MANEUVERS] Withdraw immediately (Fuel -20%, Morale -30%, Integrity -5%)",
+                        effect: { fuel: -20, morale: -30, integrity: -5 },
+                        log: "Emergency retreat from alien structure. Crew reporting nightmares.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[SCAN AND ANALYZE] Maintain distance while studying (Fuel -25%, Morale +10%, Integrity -15%)",
+                        effect: { fuel: -25, morale: +10, integrity: -15 },
+                        log: "Conducted scans of mysterious structure. Data makes no conventional sense.",
+                        bg: "supernovaBg"
+                    }
+                ],
+                apiTrigger: true
+            },
+            {
+                title: "RESOURCE CRISIS",
+                text: "The Horizon's fuel reserves hit critical levels. Sensors detect a rogue planet with exotic matter deposits that could power the ship for months - but landing would mean entering a region of severe spacetime curvature. The crew debates whether to risk temporal dislocation for survival.",
+                choices: [
+                    {
+                        text: "[LAND AND MINE] Risk time anomalies to replenish (Fuel +40%, Morale -20%, Integrity -30%)",
+                        effect: { fuel: +40, morale: -20, integrity: -30 },
+                        log: "Landing on rogue planet. Clocks running at different rates across ship.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[CONTINUE ON RESERVES] Preserve temporal integrity (Fuel -30%, Morale -40%, Integrity -5%)",
+                        effect: { fuel: -30, morale: -40, integrity: -5 },
+                        log: "Pressing forward on dwindling reserves. Crew rationing everything.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[SEND DRONES ONLY] Limited harvest attempt (Fuel +15%, Morale -10%, Integrity -15%)",
+                        effect: { fuel: +15, morale: -10, integrity: -15 },
+                        log: "Deployed mining drones. Some returned... changed.",
+                        bg: "supernovaBg"
+                    }
+                ]
+            },
+            {
+                title: "CREW MUTINY",
+                text: "Chief Engineer Cooper leads a faction demanding you divert to a nearby wormhole they believe leads to safety. Science Officer Brand insists this would trap them in another galaxy forever. The crew is splitting along ideological lines as spacetime distortions worsen.",
+                choices: [
+                    {
+                        text: "[SUPPORT COOPER] Trust the engineer's instincts (Fuel -10%, Morale +40%, Integrity -25%)",
+                        effect: { fuel: -10, morale: +40, integrity: -25 },
+                        log: "Following Cooper's plan. Wormhole event horizon approaching.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[SUPPORT BRAND] Stay the original course (Fuel -15%, Morale -45%, Integrity -10%)",
+                        effect: { fuel: -15, morale: -45, integrity: -10 },
+                        log: "Maintained original heading. Cooper's faction confined to quarters.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[COMPROMISE] Send scout probe through wormhole (Fuel -25%, Morale +15%, Integrity -15%)",
+                        effect: { fuel: -25, morale: +15, integrity: -15 },
+                        log: "Launched probe into wormhole. Awaiting data that may never come.",
+                        bg: "supernovaBg"
+                    }
+                ]
+            },
+            {
+                title: "FINAL JUMP DECISION",
+                text: "The safe zone is within reach but requires traversing an unstable wormhole. Navigation calculates only a 42.3% chance of successful transit - the alternative is a years-long sublight journey as the galaxy collapses around you. The crew looks to you for what may be their final decision.",
+                choices: [
+                    {
+                        text: "[WORMHOLE TRANSIT] All or nothing gamble (Fuel -15%, Morale -50%, Integrity -50%)",
+                        effect: { fuel: -15, morale: -50, integrity: -50 },
+                        log: "Entering unstable wormhole. Reality itself seems to be tearing apart.",
+                        bg: "nebulaBg"
+                    },
+                    {
+                        text: "[SUBLIGHT JOURNEY] Years of slow despair (Fuel -80%, Morale -60%, Integrity -20%)",
+                        effect: { fuel: -80, morale: -60, integrity: -20 },
+                        log: "Committing to sublight journey. Generations may live and die aboard.",
+                        bg: "pulsarBg"
+                    },
+                    {
+                        text: "[SACRIFICE HORIZON] Use ship as stabilizing anchor (Fuel -100%, Morale +100%, Integrity -100%)",
+                        effect: { fuel: -100, morale: +100, integrity: -100 },
+                        log: "Initiating self-destruct sequence to stabilize wormhole for others.",
+                        bg: "supernovaBg"
+                    }
+                ],
+                apiTrigger: true
+            }
+        ];
+
+        // Ending Messages
+        const endings = {
+            success: {
+                title: "MISSION ACCOMPLISHED",
+                text: "Against impossible odds, you've guided the Horizon through the collapsing galaxy. As you emerge in the safe zone, you realize years have passed outside - perhaps decades. The crew's families may be gone, but humanity's future is secure. Your name will be remembered among the stars.\n\nFinal Stats:\n- Fuel: " + gameState.stats.fuel + "%\n- Crew Morale: " + gameState.stats.morale + "%\n- Ship Integrity: " + gameState.stats.integrity + "%",
+                className: "ending-success"
+            },
+            lost: {
+                title: "LOST TO TIME",
+                text: "The Horizon drifts through the void, its systems failing one by one. The crew exists in fractured timelines - some aging years in hours, others frozen in moments. Your final transmissions warp and distort as spacetime itself unravels around you. The galaxy collapses, and with it, all memory of your journey.\n\nFinal Stats:\n- Fuel: " + gameState.stats.fuel + "%\n- Crew Morale: " + gameState.stats.morale + "%\n- Ship Integrity: " + gameState.stats.integrity + "%",
+                className: "ending-lost"
+            },
+            sacrifice: {
+                title: "TRANSCENDENCE",
+                text: "As the Horizon's core detonates, you witness the impossible - the wormhole stabilizing, thousands of ships making it through to safety. In your final moments, you realize the truth: you were never meant to survive. Your sacrifice has rewritten destiny itself. The collapse continues, but humanity will endure... elsewhere.\n\nFinal Stats:\n- Fuel: " + gameState.stats.fuel + "%\n- Crew Morale: " + gameState.stats.morale + "%\n- Ship Integrity: " + gameState.stats.integrity + "%",
+                className: "ending-sacrifice"
+            }
+        };
+
+        // DOM Elements
+        const launchSequence = document.getElementById('launchSequence');
+        const gameContainer = document.getElementById('gameContainer');
+        const playerGreeting = document.getElementById('playerGreeting');
+        const currentSceneElement = document.getElementById('currentScene');
+        const apiImageContainer = document.getElementById('apiImageContainer');
+        const apiImage = document.getElementById('apiImage');
+        const apiTitle = document.getElementById('apiTitle');
+        const apiExplanation = document.getElementById('apiExplanation');
+        const logCarousel = document.getElementById('logCarousel');
+        const carouselContainer = document.getElementById('carouselContainer');
+        const endingScreen = document.getElementById('endingScreen');
+        const endingTitle = document.getElementById('endingTitle');
+        const endingText = document.getElementById('endingText');
+        const endingImage = document.getElementById('endingImage');
+        const endingImageTitle = document.getElementById('endingImageTitle');
+        const restartBtn = document.getElementById('restartBtn');
+        const countdownElement = document.getElementById('countdown');
+        const progressFill = document.getElementById('progressFill');
+        const playerNameInput = document.getElementById('playerName');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const starfield = document.getElementById('starfield');
+        const wormhole = document.getElementById('wormhole');
+        const blackHole = document.getElementById('blackHole');
+
+        // Choice Backgrounds
+        const nebulaBg = document.getElementById('nebulaBg');
+        const pulsarBg = document.getElementById('pulsarBg');
+        const supernovaBg = document.getElementById('supernovaBg');
+
+        // Stat Bars
+        const fuelFill = document.getElementById('fuel-fill');
+        const moraleFill = document.getElementById('morale-fill');
+        const integrityFill = document.getElementById('integrity-fill');
+        const fuelValue = document.getElementById('fuel-value');
+        const moraleValue = document.getElementById('morale-value');
+        const integrityValue = document.getElementById('integrity-value');
+
+        // Initialize the game
+        function initGame() {
+            // Create stars
+            createStars();
+            
+            // Position black hole randomly
+            positionBlackHole();
+            
+            // Start launch sequence
+            startLaunchSequence();
+            
+            // Set up event listeners
+            startGameBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // Create twinkling stars in background
+        function createStars() {
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random size between 1-3px
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Random position
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation
+                const duration = Math.random() * 10 + 5;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--opacity', Math.random() * 0.5 + 0.5);
+                
+                starfield.appendChild(star);
+            }
+        }
+
+        // Position black hole randomly
+        function positionBlackHole() {
+            const x = Math.random() * 50 + 25;
+            const y = Math.random() * 50 + 25;
+            blackHole.style.left = `${x}%`;
+            blackHole.style.top = `${y}%`;
+        }
+
+        // Launch sequence animation
+        function startLaunchSequence() {
+            let count = 5;
+            let progress = 0;
+            
+            const countdownInterval = setInterval(() => {
+                countdownElement.textContent = count;
+                progress += 20;
+                progressFill.style.width = `${progress}%`;
+                
+                if (count === 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.textContent = "READY";
+                    progressFill.style.width = "100%";
+                }
+                
+                count--;
+            }, 1000);
+        }
+
+        // Start the game after launch sequence
+        function startGame() {
+            const name = playerNameInput.value.trim() || "Captain";
+            gameState.playerName = name;
+            playerGreeting.textContent = `${name.toUpperCase()}, THE GALAXY AWAITS YOUR DECISIONS...`;
+            
+            launchSequence.style.opacity = 0;
+            setTimeout(() => {
+                launchSequence.style.display = 'none';
+                gameContainer.style.display = 'block';
+                setTimeout(() => gameContainer.style.opacity = 1, 50);
+                
+                // Load first scene
+                loadScene(0);
+            }, 500);
+        }
+
+        // Load a scene by index
+        function loadScene(index) {
+            if (index >= scenes.length) {
+                endGame();
+                return;
+            }
+            
+            gameState.currentScene = index;
+            const scene = scenes[index];
+            
+            // Clear previous scene
+            currentSceneElement.innerHTML = '';
+            
+            // Create scene elements
+            const titleElement = document.createElement('h2');
+            titleElement.className = 'scene-title';
+            titleElement.textContent = scene.title;
+            
+            const textElement = document.createElement('p');
+            textElement.className = 'scene-text';
+            textElement.textContent = scene.text.replace(/Captain/g, gameState.playerName);
+            
+            const choicesElement = document.createElement('div');
+            choicesElement.className = 'choices';
+            
+            // Add choices with background effects
+            scene.choices.forEach((choice, i) => {
+                const choiceBtn = document.createElement('button');
+                choiceBtn.className = 'choice-btn';
+                choiceBtn.textContent = choice.text;
+                
+                // Add hover effect for background
+                choiceBtn.addEventListener('mouseenter', () => {
+                    // Reset all backgrounds
+                    nebulaBg.classList.remove('active');
+                    pulsarBg.classList.remove('active');
+                    supernovaBg.classList.remove('active');
+                    
+                    // Activate the chosen background
+                    if (choice.bg) {
+                        document.getElementById(choice.bg).classList.add('active');
+                    }
+                });
+                
+                choiceBtn.addEventListener('click', () => makeChoice(i));
+                choicesElement.appendChild(choiceBtn);
+            });
+            
+            // Assemble scene
+            currentSceneElement.appendChild(titleElement);
+            currentSceneElement.appendChild(textElement);
+            currentSceneElement.appendChild(choicesElement);
+            
+            // Show/hide API image based on scene
+            if (scene.apiTrigger) {
+                fetchNASAData();
+            } else {
+                apiImageContainer.style.display = 'none';
+            }
+            
+            // Update HUD
+            updateHUD();
+            
+            // Randomize black hole position
+            positionBlackHole();
+        }
+
+        // Handle player choice
+        function makeChoice(choiceIndex) {
+            const scene = scenes[gameState.currentScene];
+            const choice = scene.choices[choiceIndex];
+            
+            // Reset all backgrounds
+            nebulaBg.classList.remove('active');
+            pulsarBg.classList.remove('active');
+            supernovaBg.classList.remove('active');
+            
+            // Apply effects to stats
+            Object.keys(choice.effect).forEach(stat => {
+                gameState.stats[stat] += choice.effect[stat];
+                
+                // Clamp between 0-100
+                gameState.stats[stat] = Math.max(0, Math.min(100, gameState.stats[stat]));
+            });
+            
+            // Add to logs
+            const logEntry = {
+                date: new Date().toISOString().split('T')[0],
+                text: choice.log
+            };
+            gameState.logs.push(logEntry);
+            updateLogCarousel();
+            
+            // Record choice
+            gameState.choices.push({
+                scene: gameState.currentScene,
+                choice: choiceIndex
+            });
+            
+            // Load next scene
+            loadScene(gameState.currentScene + 1);
+        }
+
+        // Update the HUD with current stats
+        function updateHUD() {
+            fuelFill.style.width = `${gameState.stats.fuel}%`;
+            moraleFill.style.width = `${gameState.stats.morale}%`;
+            integrityFill.style.width = `${gameState.stats.integrity}%`;
+            
+            fuelValue.textContent = `${gameState.stats.fuel}%`;
+            moraleValue.textContent = `${gameState.stats.morale}%`;
+            integrityValue.textContent = `${gameState.stats.integrity}%`;
+            
+            // Color changes for critical levels
+            fuelFill.style.background = gameState.stats.fuel < 30 ? 
+                'linear-gradient(90deg, var(--warning-red), #a00)' : 
+                'linear-gradient(90deg, var(--neon-blue), #0a8)';
+                
+            moraleFill.style.background = gameState.stats.morale < 30 ? 
+                'linear-gradient(90deg, var(--warning-red), #a00)' : 
+                'linear-gradient(90deg, var(--neon-purple), #80a)';
+            
+            // Pulse effect for critical stats
+            if (gameState.stats.fuel < 20) {
+                fuelFill.style.animation = 'pulse 1s infinite';
+            } else {
+                fuelFill.style.animation = 'none';
+            }
+            
+            if (gameState.stats.morale < 20) {
+                moraleFill.style.animation = 'pulse 1s infinite';
+            } else {
+                moraleFill.style.animation = 'none';
+            }
+            
+            if (gameState.stats.integrity < 20) {
+                integrityFill.style.animation = 'pulse 1s infinite';
+            } else {
+                integrityFill.style.animation = 'none';
+            }
+        }
+
+        // Update the log carousel
+        function updateLogCarousel() {
+            if (gameState.logs.length === 0) {
+                logCarousel.style.display = 'none';
+                return;
+            }
+            
+            logCarousel.style.display = 'block';
+            carouselContainer.innerHTML = '';
+            
+            gameState.logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                const logDate = document.createElement('div');
+                logDate.className = 'log-date';
+                logDate.textContent = log.date;
+                
+                const logText = document.createElement('div');
+                logText.className = 'log-text';
+                logText.textContent = log.text;
+                
+                logEntry.appendChild(logDate);
+                logEntry.appendChild(logText);
+                carouselContainer.appendChild(logEntry);
+            });
+            
+            // Scroll to end
+            carouselContainer.scrollLeft = carouselContainer.scrollWidth;
+        }
+
+        // Fetch data from NASA API
+        async function fetchNASAData() {
+            try {
+                // Use a fallback URL if the API is unavailable
+                const apiUrl = 'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&count=1';
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+                const item = Array.isArray(data) ? data[0] : data;
+                
+                apiImage.src = item.url || 'https://apod.nasa.gov/apod/image/2308/NGC6652_NASA_4000.jpg';
+                apiTitle.textContent = item.title || 'COSMIC PHENOMENON';
+                apiExplanation.textContent = item.explanation || 'A fascinating cosmic event captured by space telescopes.';
+                
+                apiImageContainer.style.display = 'block';
+            } catch (error) {
+                console.error('Error fetching NASA data:', error);
+                // Fallback image and data
+                apiImage.src = 'https://apod.nasa.gov/apod/image/2308/NGC6652_NASA_4000.jpg';
+                apiTitle.textContent = 'STAR CLUSTER NGC 6652';
+                apiExplanation.textContent = 'A glittering star cluster in our galaxy, captured by the Hubble Space Telescope.';
+                apiImageContainer.style.display = 'block';
+            }
+        }
+
+        // End the game and show appropriate ending
+        function endGame() {
+            const stats = gameState.stats;
+            
+            // Determine ending based on stats
+            let ending;
+            if (stats.fuel <= 0 && stats.integrity <= 0) {
+                ending = endings.lost;
+            } else if ((stats.morale >= 60 && stats.integrity >= 40) || stats.fuel >= 50) {
+                ending = endings.success;
+            } else {
+                ending = endings.sacrifice;
+            }
+            
+            // Update ending text with current stats
+            ending.text = ending.text
+                .replace("Fuel: " + gameState.stats.fuel + "%", "Fuel: " + stats.fuel + "%")
+                .replace("Crew Morale: " + gameState.stats.morale + "%", "Crew Morale: " + stats.morale + "%")
+                .replace("Ship Integrity: " + gameState.stats.integrity + "%", "Ship Integrity: " + stats.integrity + "%");
+            
+            // Set ending content
+            endingTitle.textContent = ending.title;
+            endingTitle.className = `ending-title ${ending.className}`;
+            endingText.textContent = ending.text.replace(/Captain/g, gameState.playerName);
+            
+            // Fetch a final image
+            fetchFinalImage();
+            
+            // Show ending screen
+            endingScreen.style.display = 'flex';
+            setTimeout(() => endingScreen.style.opacity = 1, 50);
+            
+            // Hide game container
+            gameContainer.style.display = 'none';
+            
+            // Dramatic background effect
+            blackHole.style.width = '100vw';
+            blackHole.style.height = '100vh';
+            blackHole.style.left = '50%';
+            blackHole.style.top = '50%';
+            blackHole.style.transform = 'translate(-50%, -50%)';
+            blackHole.style.borderRadius = '0';
+            blackHole.style.background = 'radial-gradient(circle, transparent 0%, rgba(0,0,0,0.9) 70%)';
+        }
+
+        // Fetch a special image for the ending
+        async function fetchFinalImage() {
+            try {
+                const apiUrl = 'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&count=1';
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+                const item = Array.isArray(data) ? data[0] : data;
+                
+                endingImage.src = item.url || 'https://apod.nasa.gov/apod/image/2308/M31CloudyNight_Colombari_2000.jpg';
+                endingImageTitle.textContent = item.title || 'ANDROMEDA GALAXY';
+            } catch (error) {
+                console.error('Error fetching final image:', error);
+                endingImage.src = 'https://apod.nasa.gov/apod/image/2308/M31CloudyNight_Colombari_2000.jpg';
+                endingImageTitle.textContent = 'THE ANDROMEDA GALAXY';
+            }
+        }
+
+        // Restart the game
+        function restartGame() {
+            // Reset game state
+            gameState.currentScene = 0;
+            gameState.stats = {
+                fuel: 100,
+                morale: 100,
+                integrity: 100
+            };
+            gameState.logs = [];
+            gameState.choices = [];
+            
+            // Reset black hole
+            blackHole.style.width = '300px';
+            blackHole.style.height = '300px';
+            blackHole.style.background = 'radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 50%, rgba(0, 100, 200, 0.3) 70%, rgba(100, 0, 200, 0.6) 90%)';
+            blackHole.style.borderRadius = '50%';
+            positionBlackHole();
+            
+            // Hide ending screen
+            endingScreen.style.opacity = 0;
+            setTimeout(() => {
+                endingScreen.style.display = 'none';
+                
+                // Show game container and load first scene
+                gameContainer.style.display = 'block';
+                setTimeout(() => gameContainer.style.opacity = 1, 50);
+                loadScene(0);
+            }, 500);
+        }
+
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
