@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHRONOSCAPE | The Ultimate Interactive Timeline</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #bd00ff;
+            --dark-bg: #0a0a15;
+            --darker-bg: #050510;
+            --glow-blue: 0 0 15px rgba(0, 243, 255, 0.7);
+            --glow-pink: 0 0 15px rgba(255, 0, 255, 0.7);
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: white;
+            overflow-x: hidden;
+            height: 100vh;
+            scroll-behavior: smooth;
+            background: radial-gradient(circle at center, #0c0c1d 0%, #050510 100%);
+        }
+        
+        /* Header with Controls */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
+            background: linear-gradient(to bottom, rgba(5,5,16,0.9), transparent);
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: var(--glow-blue);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 243, 255, 0.3);
+            transform: scale(1.1);
+            box-shadow: var(--glow-blue);
+        }
+        
+        /* Timeline Navigation */
+        .timeline-nav {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .era-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .era-dot.active {
+            background: var(--neon-blue);
+            box-shadow: var(--glow-blue);
+            transform: scale(1.4);
+        }
+        
+        .era-dot:hover::after {
+            content: attr(data-era);
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        /* Year Indicator */
+        .year-indicator {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: var(--glow-blue);
+            z-index: 1000;
+            background: rgba(10, 10, 21, 0.8);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 1px solid var(--neon-blue);
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Main Sections */
+        .era-section {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            isolation: isolate;
+        }
+        
+        .era-content {
+            max-width: 800px;
+            text-align: center;
+            padding: 50px;
+            background: rgba(5, 5, 16, 0.85);
+            border-radius: 25px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+            backdrop-filter: blur(15px);
+            z-index: 10;
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        
+        .era-title {
+            font-size: 4.5rem;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: var(--neon-blue);
+            text-shadow: var(--glow-blue);
+            font-weight: 800;
+        }
+        
+        .era-description {
+            font-size: 1.3rem;
+            line-height: 1.7;
+            margin-bottom: 35px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Interactive Elements */
+        .interactive-element {
+            display: inline-block;
+            padding: 15px 35px;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+        }
+        
+        .interactive-element:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 243, 255, 0.5);
+        }
+        
+        .interactive-element:active {
+            transform: translateY(1px);
+        }
+        
+        /* Particle Effects */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            box-shadow: var(--glow-blue);
+            opacity: 0.7;
+        }
+        
+        /* Fracture Effect */
+        .fracture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M20,20 Q40,5 50,30 T80,20" stroke="white" stroke-width="0.5" fill="none"/></svg>');
+            opacity: 0.1;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        /* Mini-map */
+        .mini-map {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 10px;
+            width: 65%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .map-progress {
+            height: 100%;
+            width: 10%;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            box-shadow: var(--glow-blue);
+        }
+        
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--darker-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            transition: opacity 1.5s ease;
+        }
+        
+        .loading-glyph {
+            width: 100px;
+            height: 100px;
+            border: 6px solid rgba(0, 243, 255, 0.3);
+            border-top: 6px solid var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1.8s linear infinite;
+            margin-bottom: 40px;
+        }
+        
+        .loading-text {
+            font-size: 1.8rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--neon-blue);
+            text-shadow: var(--glow-blue);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        /* Time Fracture Effect */
+        .time-fracture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 48%, var(--neon-blue) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, var(--neon-blue) 50%, transparent 52%);
+            background-size: 20px 20px;
+            z-index: 1500;
+            pointer-events: none;
+            opacity: 0;
+            animation: fractureAnim 0.5s linear;
+        }
+        
+        @keyframes fractureAnim {
+            0% { opacity: 0; transform: scale(0.1); }
+            50% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+        
+        /* Singularity Orb */
+        .singularity-orb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--neon-blue), var(--neon-purple));
+            box-shadow: 0 0 60px var(--neon-blue), 0 0 100px rgba(189, 0, 255, 0.7);
+            z-index: 20;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 1s ease;
+            overflow: hidden;
+        }
+        
+        .orb-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8), transparent 70%);
+            animation: pulseOrb 2s infinite alternate;
+        }
+        
+        .orb-text {
+            position: absolute;
+            color: white;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
+            animation: floatText 4s infinite ease-in-out;
+        }
+        
+        @keyframes pulseOrb {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        @keyframes floatText {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        
+        /* Era-specific animations */
+        .big-bang-explosion {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 10%, #ff9900 20%, #ff3300 30%, #990000 40%, #330000 60%, transparent 70%);
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .volcano {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(to top, #8B4513, #A52A2A, #FF4500);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+        
+        .lava {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 100px;
+            height: 0;
+            background: radial-gradient(ellipse at top, #FF4500, #FF0000);
+            border-radius: 50% 50% 0 0;
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+        
+        .fire {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            width: 80px;
+            height: 120px;
+            background: radial-gradient(ellipse at center, #FF8C00, #FF4500, transparent 70%);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .pyramid {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 200px;
+            height: 150px;
+            background: linear-gradient(to top, #DAA520, #8B4513);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: translateX(-50%);
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .castle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 200px;
+            height: 150px;
+            background: linear-gradient(to top, #808080, #A9A9A9);
+            clip-path: polygon(0% 100%, 20% 60%, 40% 80%, 60% 40%, 80% 70%, 100% 100%);
+            transform: translateX(-50%);
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .gear {
+            position: absolute;
+            top: 20%;
+            left: 30%;
+            width: 80px;
+            height: 80px;
+            background: #808080;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .gear::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 20px;
+            background: #808080;
+            transform: translate(-50%, -50%);
+            border-radius: 10px;
+        }
+        
+        .gear::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 120%;
+            background: #808080;
+            transform: translate(-50%, -50%);
+            border-radius: 10px;
+        }
+        
+        .crt-scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            z-index: 5;
+            opacity: 0.5;
+        }
+        
+        .rocket-trail {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 10px;
+            height: 0;
+            background: linear-gradient(to top, #00f3ff, transparent);
+            transform: translateX(-50%);
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .circuit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 48%, var(--neon-blue) 50%, transparent 52%),
+                linear-gradient(0deg, transparent 48%, var(--neon-blue) 50%, transparent 52%);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        /* Era-specific backgrounds */
+        #big-bang {
+            background: radial-gradient(circle, #ff0000 0%, #990000 30%, #330000 60%, #000 100%);
+        }
+        
+        #ancient-earth {
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+        }
+        
+        #caveman-era {
+            background: linear-gradient(to bottom, #5d2906, #7a3b0e, #a0522d);
+        }
+        
+        #ancient-civs {
+            background: linear-gradient(to bottom, #d4af37, #a67c00, #8b4513);
+        }
+        
+        #medieval {
+            background: linear-gradient(to bottom, #1c2b40, #2c3e50, #1c2b40);
+        }
+        
+        #industrial {
+            background: linear-gradient(to bottom, #2c3e50, #5d6d7e, #2c3e50);
+        }
+        
+        #digital-age {
+            background: linear-gradient(to bottom, #0d1b2a, #1b263b, #0d1b2a);
+        }
+        
+        #space-age {
+            background: linear-gradient(to bottom, #000428, #004e92, #000428);
+        }
+        
+        #ai-future {
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+        }
+        
+        #time-loop {
+            background: conic-gradient(
+                #ff00ff, #00ffff, #ff00ff, #00ffff, #ff00ff, 
+                #00ffff, #ff00ff, #00ffff, #ff00ff, #00ffff
+            );
+            animation: rotateBackground 60s linear infinite;
+        }
+        
+        @keyframes rotateBackground {
+            from { background-position: 0 0; }
+            to { background-position: 100% 100%; }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .era-title {
+                font-size: 3rem;
+            }
+            
+            .era-description {
+                font-size: 1.1rem;
+            }
+            
+            .year-indicator {
+                top: 15px;
+                right: 15px;
+                font-size: 20px;
+                padding: 10px 18px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .control-btn {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .era-content {
+                padding: 30px;
+                margin: 0 20px;
+            }
+            
+            .interactive-element {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .singularity-orb {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .orb-inner {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-glyph"></div>
+        <div class="loading-text">CHRONOSCAPE INITIALIZING</div>
+    </div>
+    
+    <!-- Time Fracture Effect -->
+    <div class="time-fracture" id="time-fracture"></div>
+    
+    <!-- Header with Controls -->
+    <div class="header">
+        <div class="logo">CHRONOSCAPE</div>
+        <div class="controls">
+            <div class="control-btn" id="sound-toggle">
+                <i class="fas fa-volume-up"></i>
+            </div>
+            <div class="control-btn" id="glitch-toggle">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="control-btn" id="help-btn">
+                <i class="fas fa-question"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Year Indicator -->
+    <div class="year-indicator">13.8 BYA</div>
+    
+    <!-- Timeline Navigation -->
+    <div class="timeline-nav">
+        <div class="era-dot active" data-era="Big Bang" onclick="scrollToEra(0)"></div>
+        <div class="era-dot" data-era="Ancient Earth" onclick="scrollToEra(1)"></div>
+        <div class="era-dot" data-era="Caveman Era" onclick="scrollToEra(2)"></div>
+        <div class="era-dot" data-era="Ancient Civilizations" onclick="scrollToEra(3)"></div>
+        <div class="era-dot" data-era="Medieval Ages" onclick="scrollToEra(4)"></div>
+        <div class="era-dot" data-era="Industrial Rev" onclick="scrollToEra(5)"></div>
+        <div class="era-dot" data-era="Digital Age" onclick="scrollToEra(6)"></div>
+        <div class="era-dot" data-era="Space Age" onclick="scrollToEra(7)"></div>
+        <div class="era-dot" data-era="AI Future" onclick="scrollToEra(8)"></div>
+        <div class="era-dot" data-era="Time Loop" onclick="scrollToEra(9)"></div>
+    </div>
+    
+    <!-- Mini-map -->
+    <div class="mini-map">
+        <div class="map-progress" id="map-progress"></div>
+    </div>
+    
+    <!-- Era Sections -->
+    <section class="era-section" id="big-bang">
+        <div class="big-bang-explosion" id="big-bang-explosion"></div>
+        <div class="particles" id="particles-1"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">THE BIG BANG</h1>
+            <p class="era-description">Witness the cataclysmic birth of the cosmos. From an infinitely dense singularity, space and time explode into existence in a fireball of cosmic energy.</p>
+            <button class="interactive-element" onclick="triggerBigBang()">IGNITE COSMOS</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="ancient-earth">
+        <div class="volcano" id="volcano"></div>
+        <div class="lava" id="lava"></div>
+        <div class="particles" id="particles-2"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">ANCIENT EARTH</h1>
+            <p class="era-description">A primordial world of volcanoes, oceans, and the first stirrings of life. Witness the formation of continents and the emergence of early organisms.</p>
+            <button class="interactive-element" onclick="discoverFossil()">DISCOVER FOSSIL</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="caveman-era">
+        <div class="fire" id="fire"></div>
+        <div class="particles" id="particles-3"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">CAVEMAN ERA</h1>
+            <p class="era-description">Humanity's earliest ancestors harness fire, create tools, and develop the first forms of communication. The dawn of human consciousness begins.</p>
+            <button class="interactive-element" onclick="igniteFire()">IGNITE FIRE</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="ancient-civs">
+        <div class="pyramid" id="pyramid"></div>
+        <div class="particles" id="particles-4"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">ANCIENT CIVILIZATIONS</h1>
+            <p class="era-description">Great empires rise along fertile river valleys. Monumental architecture, written language, and complex societies emerge across the globe.</p>
+            <button class="interactive-element" onclick="buildPyramid()">BUILD PYRAMID</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="medieval">
+        <div class="castle" id="castle"></div>
+        <div class="particles" id="particles-5"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">MEDIEVAL AGES</h1>
+            <p class="era-description">A time of castles, knights, and great cathedrals. Knowledge is preserved in monasteries while new ideas begin to stir across continents.</p>
+            <button class="interactive-element" onclick="solveRiddle()">SOLVE RIDDLE</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="industrial">
+        <div class="gear" id="gear-1"></div>
+        <div class="gear" id="gear-2"></div>
+        <div class="gear" id="gear-3"></div>
+        <div class="particles" id="particles-6"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">INDUSTRIAL REVOLUTION</h1>
+            <p class="era-description">Machines transform society. Steam power drives factories and locomotives, reshaping economies and daily life in unprecedented ways.</p>
+            <button class="interactive-element" onclick="inventMachine()">INVENT MACHINE</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="digital-age">
+        <div class="crt-scanline" id="scanline"></div>
+        <div class="circuit" id="circuit"></div>
+        <div class="particles" id="particles-7"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">DIGITAL AGE</h1>
+            <p class="era-description">The birth of computing and the internet. Information becomes instantly accessible, connecting humanity in a global digital network.</p>
+            <button class="interactive-element" onclick="hackSystem()">HACK SYSTEM</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="space-age">
+        <div class="rocket-trail" id="rocket-trail"></div>
+        <div class="particles" id="particles-8"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">SPACE AGE</h1>
+            <p class="era-description">Humanity reaches beyond Earth. Satellites orbit the planet, astronauts walk on the Moon, and probes explore the distant planets.</p>
+            <button class="interactive-element" onclick="launchRocket()">LAUNCH ROCKET</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="ai-future">
+        <div class="circuit" id="ai-circuit"></div>
+        <div class="particles" id="particles-9"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">AI FUTURE</h1>
+            <p class="era-description">Artificial intelligence surpasses human capabilities. Cities become interconnected neural networks, and humanity merges with technology.</p>
+            <button class="interactive-element" onclick="uploadConsciousness()">UPLOAD CONSCIOUSNESS</button>
+        </div>
+    </section>
+    
+    <section class="era-section" id="time-loop">
+        <div class="singularity-orb" id="singularity-orb" onclick="restartTimeline()">
+            <div class="orb-inner"></div>
+            <div class="orb-text">Singularity</div>
+        </div>
+        <div class="particles" id="particles-10"></div>
+        <div class="fracture"></div>
+        <div class="era-content">
+            <h1 class="era-title">TIME LOOP</h1>
+            <p class="era-description">You've reached the temporal singularity. All timelines converge at this point of infinite possibility. The cycle begins anew.</p>
+            <button class="interactive-element" onclick="unlockOrb()">UNLOCK ORB</button>
+        </div>
+    </section>
+    
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate loading
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    initChronoscape();
+                }, 1500);
+            }, 1500); // Reduced loading time for demo
+        });
+        
+        function initChronoscape() {
+            // Create particles for each era
+            for(let i = 1; i <= 10; i++) {
+                createParticles(i);
+            }
+            
+            // Set up GSAP animations
+            if (typeof gsap !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // Animate era content on enter
+                gsap.utils.toArray('.era-content').forEach((content, i) => {
+                    gsap.fromTo(content,
+                        { y: 50, opacity: 0 },
+                        {
+                            y: 0,
+                            opacity: 1,
+                            duration: 1,
+                            scrollTrigger: {
+                                trigger: content.parentElement,
+                                start: "top center",
+                                end: "bottom center",
+                                scrub: true,
+                                toggleActions: "play none none none"
+                            }
+                        }
+                    );
+                });
+                
+                // Create time fracture on scroll
+                ScrollTrigger.create({
+                    trigger: ".era-section",
+                    start: "top center",
+                    end: "bottom center",
+                    onEnter: () => showTimeFracture(),
+                    onEnterBack: () => showTimeFracture()
+                });
+            } else {
+                // Fallback if GSAP doesn't load
+                document.querySelectorAll('.era-content').forEach(content => {
+                    content.style.opacity = '1';
+                    content.style.transform = 'translateY(0)';
+                });
+            }
+            
+            // Position era-specific elements
+            setupEraElements();
+            
+            // Update year indicator and navigation on scroll
+            const sections = document.querySelectorAll('.era-section');
+            const yearIndicator = document.querySelector('.year-indicator');
+            const navDots = document.querySelectorAll('.era-dot');
+            const progressBar = document.getElementById('map-progress');
+            const years = [
+                "13.8 BYA", "4.5 BYA", "2.5 MYA", 
+                "3000 BCE", "1000 CE", "1760 CE",
+                "1990 CE", "2020 CE", "2070 CE",
+                "∞"
+            ];
+            
+            // Set up scroll listener
+            window.addEventListener('scroll', () => {
+                const scrollPosition = window.scrollY;
+                const windowHeight = window.innerHeight;
+                const docHeight = document.documentElement.scrollHeight;
+                
+                // Update progress bar
+                const progress = (scrollPosition / (docHeight - windowHeight)) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // Update active section
+                sections.forEach((section, index) => {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= windowHeight / 2 && rect.bottom >= windowHeight / 2) {
+                        yearIndicator.textContent = years[index];
+                        navDots.forEach(dot => dot.classList.remove('active'));
+                        navDots[index].classList.add('active');
+                    }
+                });
+            });
+            
+            // Set up control buttons
+            document.getElementById('sound-toggle').addEventListener('click', function() {
+                this.querySelector('i').classList.toggle('fa-volume-up');
+                this.querySelector('i').classList.toggle('fa-volume-mute');
+                showTimeFracture();
+            });
+            
+            document.getElementById('glitch-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('glitch-effect');
+                this.classList.toggle('active');
+                showTimeFracture();
+            });
+            
+            document.getElementById('help-btn').addEventListener('click', function() {
+                alert("CHRONOSCAPE CONTROLS:\n\nScroll: Navigate through time\nDots: Jump to specific eras\nButtons: Interactive experiences\nGlitch: Toggle temporal distortion");
+            });
+        }
+        
+        function setupEraElements() {
+            // Position and animate era-specific elements
+            if (typeof gsap !== 'undefined') {
+                // Big Bang explosion
+                gsap.set('#big-bang-explosion', {scale: 0, opacity: 0});
+                
+                // Volcano lava
+                gsap.set('#lava', {height: 0});
+                
+                // Fire animation
+                gsap.set('#fire', {opacity: 0, scale: 0});
+                
+                // Pyramid animation
+                gsap.set('#pyramid', {opacity: 0, y: 100});
+                
+                // Castle animation
+                gsap.set('#castle', {opacity: 0, y: 100});
+                
+                // Gears animation
+                gsap.set('#gear-1', {opacity: 0, x: -100, rotation: 0});
+                gsap.set('#gear-2', {opacity: 0, x: 100, rotation: 0});
+                gsap.set('#gear-3', {opacity: 0, y: -100, rotation: 0});
+                
+                // CRT scanline
+                gsap.to('#scanline', {
+                    y: '100vh',
+                    duration: 4,
+                    repeat: -1,
+                    ease: 'none'
+                });
+                
+                // Rocket trail
+                gsap.set('#rocket-trail', {height: 0, opacity: 0});
+            }
+        }
+        
+        function showTimeFracture() {
+            const fracture = document.getElementById('time-fracture');
+            fracture.style.opacity = "0.8";
+            fracture.style.animation = "none";
+            setTimeout(() => {
+                fracture.style.animation = "fractureAnim 0.8s linear";
+            }, 10);
+            setTimeout(() => {
+                fracture.style.opacity = "0";
+            }, 800);
+        }
+        
+        function createParticles(eraIndex) {
+            const container = document.getElementById(`particles-${eraIndex}`);
+            const particleCount = eraIndex === 1 ? 200 : eraIndex === 10 ? 300 : 100;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Randomize size, position, and animation
+                const size = Math.random() * 5 + 1;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const duration = Math.random() * 10 + 5;
+                const delay = Math.random() * 5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                
+                // Special styling for each era
+                if (eraIndex === 1) { // Big Bang
+                    particle.style.background = i % 3 === 0 ? 'var(--neon-pink)' : 'var(--neon-blue)';
+                    particle.style.boxShadow = i % 3 === 0 ? 'var(--glow-pink)' : 'var(--glow-blue)';
+                } else if (eraIndex === 2) { // Ancient Earth
+                    particle.style.background = i % 2 === 0 ? '#fdbb2d' : '#b21f1f';
+                } else if (eraIndex === 3) { // Caveman Era
+                    particle.style.background = '#FF4500';
+                    particle.style.borderRadius = '0%';
+                } else if (eraIndex === 4) { // Ancient Civilizations
+                    particle.style.background = '#DAA520';
+                    particle.style.borderRadius = '10%';
+                } else if (eraIndex === 5) { // Medieval
+                    particle.style.background = '#808080';
+                    particle.style.borderRadius = '30%';
+                } else if (eraIndex === 6) { // Industrial
+                    particle.style.background = '#5d6d7e';
+                    particle.style.borderRadius = '40% 10%';
+                } else if (eraIndex === 7) { // Digital Age
+                    particle.style.background = '#00f3ff';
+                    particle.style.width = '3px';
+                    particle.style.height = '15px';
+                    particle.style.borderRadius = '0';
+                } else if (eraIndex === 8) { // Space Age
+                    particle.style.background = '#ffffff';
+                    particle.style.boxShadow = '0 0 10px white';
+                } else if (eraIndex === 9) { // AI Future
+                    particle.style.background = '#bd00ff';
+                    particle.style.boxShadow = '0 0 15px #bd00ff';
+                } else if (eraIndex === 10) { // Time Loop
+                    particle.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                }
+                
+                container.appendChild(particle);
+                
+                // Animate particles with GSAP if available
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(particle, {
+                        x: Math.random() * 100 - 50,
+                        y: Math.random() * 100 - 50,
+                        rotation: Math.random() * 360,
+                        duration: duration,
+                        delay: delay,
+                        repeat: -1,
+                        yoyo: true,
+                        ease: "sine.inOut"
+                    });
+                }
+            }
+        }
+        
+        // Navigation functions
+        function scrollToEra(index) {
+            showTimeFracture();
+            document.querySelectorAll('.era-section')[index].scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+        
+        // Interactive functions
+        function triggerBigBang() {
+            showTimeFracture();
+            const section = document.getElementById('big-bang');
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#big-bang-explosion', {
+                    scale: 3,
+                    opacity: 0.8,
+                    duration: 1,
+                    onComplete: () => {
+                        gsap.to('#big-bang-explosion', {
+                            opacity: 0,
+                            duration: 2
+                        });
+                    }
+                });
+            }
+        }
+        
+        function discoverFossil() {
+            showTimeFracture();
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#lava', {
+                    height: '200px',
+                    duration: 2,
+                    ease: 'power2.out',
+                    repeat: 1,
+                    yoyo: true
+                });
+            }
+            alert('You discovered a rare trilobite fossil! This ancient arthropod lived over 500 million years ago.');
+        }
+        
+        function igniteFire() {
+            showTimeFracture();
+            const button = document.querySelector('#caveman-era .interactive-element');
+            button.innerHTML = '<i class="fas fa-fire"></i> FIRE IGNITED!';
+            button.style.background = 'linear-gradient(45deg, #ff9900, #ff3300)';
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#fire', {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 1,
+                    ease: 'back.out'
+                });
+            }
+            
+            setTimeout(() => {
+                button.innerHTML = 'IGNITE FIRE';
+                button.style.background = '';
+            }, 2000);
+        }
+        
+        function buildPyramid() {
+            showTimeFracture();
+            const button = document.querySelector('#ancient-civs .interactive-element');
+            button.innerHTML = '<i class="fas fa-hard-hat"></i> PYRAMID BUILT!';
+            button.style.background = 'linear-gradient(45deg, #DAA520, #8B4513)';
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#pyramid', {
+                    opacity: 1,
+                    y: 0,
+                    duration: 2,
+                    ease: 'bounce.out'
+                });
+            }
+            
+            setTimeout(() => {
+                button.innerHTML = 'BUILD PYRAMID';
+                button.style.background = '';
+            }, 2000);
+        }
+        
+        function solveRiddle() {
+            showTimeFracture();
+            const answer = prompt('What walks on four legs in the morning, two legs at noon, and three legs in the evening?');
+            if (answer && answer.toLowerCase().includes('man')) {
+                if (typeof gsap !== 'undefined') {
+                    gsap.to('#castle', {
+                        opacity: 1,
+                        y: 0,
+                        duration: 2,
+                        ease: 'power2.out'
+                    });
+                }
+                alert('Correct! The answer is a human being.');
+            } else {
+                alert('Incorrect! The Sphinx devours you. Game over.');
+            }
+        }
+        
+        function inventMachine() {
+            showTimeFracture();
+            if (typeof gsap !== 'undefined') {
+                gsap.to(['#gear-1', '#gear-2', '#gear-3'], {
+                    opacity: 1,
+                    x: 0,
+                    y: 0,
+                    duration: 1,
+                    stagger: 0.2,
+                    onComplete: () => {
+                        gsap.to(['#gear-1', '#gear-2', '#gear-3'], {
+                            rotation: 360,
+                            duration: 5,
+                            repeat: -1,
+                            ease: 'none'
+                        });
+                    }
+                });
+            }
+            alert('You invented the steam engine! Industrialization accelerates.');
+        }
+        
+        function hackSystem() {
+            showTimeFracture();
+            const button = document.querySelector('#digital-age .interactive-element');
+            button.innerHTML = '<i class="fas fa-terminal"></i> SYSTEM HACKED!';
+            button.style.background = 'linear-gradient(45deg, #00ff00, #003300)';
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#circuit', {
+                    opacity: 0.3,
+                    duration: 1,
+                    repeat: 3,
+                    yoyo: true
+                });
+            }
+            
+            setTimeout(() => {
+                button.innerHTML = 'HACK SYSTEM';
+                button.style.background = '';
+            }, 2000);
+        }
+        
+        function launchRocket() {
+            showTimeFracture();
+            const section = document.getElementById('space-age');
+            const rocket = document.createElement('div');
+            rocket.innerHTML = '<i class="fas fa-rocket" style="font-size: 3rem; color: var(--neon-blue);"></i>';
+            rocket.style.position = 'absolute';
+            rocket.style.bottom = '0';
+            rocket.style.left = '50%';
+            rocket.style.transform = 'translateX(-50%)';
+            section.appendChild(rocket);
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#rocket-trail', {
+                    height: '100vh',
+                    opacity: 0.8,
+                    duration: 1
+                });
+                
+                gsap.to(rocket, {
+                    bottom: '100%',
+                    opacity: 0,
+                    duration: 3,
+                    ease: "power1.in",
+                    onComplete: () => rocket.remove()
+                });
+            }
+        }
+        
+        function uploadConsciousness() {
+            showTimeFracture();
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#ai-circuit', {
+                    backgroundSize: '20px 20px',
+                    duration: 2,
+                    repeat: 1,
+                    yoyo: true
+                });
+            }
+            alert('Consciousness uploaded to the neural network. You are now immortal.');
+        }
+        
+        function unlockOrb() {
+            showTimeFracture();
+            const orb = document.getElementById('singularity-orb');
+            const button = document.querySelector('#time-loop .interactive-element');
+            
+            button.innerHTML = '<i class="fas fa-unlock"></i> ORB UNLOCKED!';
+            button.style.background = 'linear-gradient(45deg, #ff00ff, #00ffff)';
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to(orb, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 2,
+                    ease: 'elastic.out(1, 0.3)'
+                });
+            }
+            
+            setTimeout(() => {
+                button.innerHTML = 'UNLOCK ORB';
+                button.style.background = '';
+            }, 2000);
+        }
+        
+        function restartTimeline() {
+            showTimeFracture();
+            if (typeof gsap !== 'undefined') {
+                gsap.to('#singularity-orb', {
+                    scale: 0,
+                    opacity: 0,
+                    duration: 1,
+                    onComplete: () => {
+                        gsap.to(window, {
+                            scrollTo: 0,
+                            duration: 3,
+                            ease: "power2.inOut"
+                        });
+                    }
+                });
+            } else {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    </script>
+</body>
+</html>
